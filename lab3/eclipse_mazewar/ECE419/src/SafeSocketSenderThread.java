@@ -1,9 +1,10 @@
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SafeSocketSenderThread implements Runnable {
 	public int sequenceNumber=1;
-	public static int currentAck=0;
+	public static AtomicInteger currentAck = new AtomicInteger(0);
 	public MSocket mSocket=null;
 	public BlockingQueue<MPacket> packetQueue;
 	public static boolean hasToken = false;
@@ -106,8 +107,8 @@ public class SafeSocketSenderThread implements Runnable {
         		
                 // keep sending unless ACKed
         		//System.out.println("1- currentAck is " + SafeSocketSenderThread.currentAck + ", seqN is " + this.sequenceNumber );
-            	while (SafeSocketSenderThread.currentAck != this.sequenceNumber){
-            		if (SafeSocketSenderThread.currentAck > this.sequenceNumber){
+            	while (SafeSocketSenderThread.currentAck.get() != this.sequenceNumber){
+            		if (SafeSocketSenderThread.currentAck.get() > this.sequenceNumber){
             			System.out.println("ERROR: SEQUENCE NUMBER TOO BIG");
             			System.exit(-1);
             		}
@@ -129,7 +130,7 @@ public class SafeSocketSenderThread implements Runnable {
     }
 	
 	public static void updateAck(int ackNum){
-		SafeSocketSenderThread.currentAck = Math.max(ackNum, SafeSocketSenderThread.currentAck);
+		SafeSocketSenderThread.currentAck.getAndSet(Math.max(ackNum, SafeSocketSenderThread.currentAck.get()));
 		//System.out.println("Updating ACK to " + SafeSocketSenderThread.currentAck);
 	}
 
