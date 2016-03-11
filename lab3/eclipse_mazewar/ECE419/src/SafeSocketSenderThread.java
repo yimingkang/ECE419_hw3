@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
 public class SafeSocketSenderThread implements Runnable {
@@ -9,6 +10,8 @@ public class SafeSocketSenderThread implements Runnable {
 	public static MPacket currentToken;
 	
 	public SafeSocketSenderThread(MSocket socket, BlockingQueue<MPacket> packets){
+		/*** Place all outbound MPackets in the blocking queue ***/
+		
 		this.mSocket = socket;
 		this.packetQueue = packets;
 		

@@ -23,7 +23,7 @@ public class SafeSocketListenerThread implements Runnable {
     }
 
     public SafeSocketListenerThread(String name, MSocket socket, BlockingQueue<MPacket> q){
-    	/* This thread fetches packets and replies with ACK
+    	/* This thread fetches packets from ordered tokens and places them in q
     	 * 
     	 */
         this.mSocket = socket;
@@ -62,6 +62,12 @@ public class SafeSocketListenerThread implements Runnable {
         while(true){
             try{
                 received = (MPacket) mSocket.readObject();
+                
+                // check that we've got TOKEN object
+                if (received.event != MPacket.TOKEN){
+                	System.out.println("ERROR: Expecting TOKEN obj but got " + received.event + " instead");
+                	System.exit(-1);
+                }
                 
                 // ACK on all read objects
                 this.sendAck(received.sequenceNumber);
