@@ -7,7 +7,6 @@ public class SafeSocket {
 	public int inPort;
 	
     private MServerSocket mServerSocket = null;
-    private MSocket mOutboundSocket = null;    
     private MSocket mInboundSocket = null;    
 	
 	private BlockingQueue<MPacket> writeBuffer;
@@ -19,20 +18,13 @@ public class SafeSocket {
 		this.writeBuffer = new LinkedBlockingQueue<MPacket>();
 		this.readBuffer = new LinkedBlockingQueue<MPacket>();
 		
-		// create socket and start sender thread
-		try {
-			this.mOutboundSocket = new MSocket("localhost", outPort);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		new Thread(new SafeSocketSenderThread(this.mOutboundSocket, this.writeBuffer)).start();
+		// have Sender thread connect to socket himself ==> impl retry!
+		new Thread(new SafeSocketSenderThread("localhost", outPort, this.writeBuffer)).start();
 		
 		// create a socket and start listener thread
 		this.mServerSocket = new MServerSocket(inPort);
 		this.mInboundSocket = this.mServerSocket.accept();
 		new Thread(new SafeSocketListenerThread(name, this.mInboundSocket, this.readBuffer)).start();
-		
-
 	}
 	
 	

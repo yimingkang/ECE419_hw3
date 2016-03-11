@@ -4,19 +4,33 @@ import java.util.concurrent.BlockingQueue;
 public class SafeSocketSenderThread implements Runnable {
 	public int sequenceNumber=1;
 	public static int currentAck=0;
-	public MSocket mSocket;
+	public MSocket mSocket=null;
 	public BlockingQueue<MPacket> packetQueue;
 	public static boolean hasToken = false;
 	public static MPacket currentToken;
 	
-	public SafeSocketSenderThread(MSocket socket, BlockingQueue<MPacket> packets){
+	public SafeSocketSenderThread(String host, int outPort, BlockingQueue<MPacket> packets){
 		/*** Place all outbound MPackets in the blocking queue ***/
 		
-		this.mSocket = socket;
+		// create socket and start sender thread
+		while (this.mSocket == null){
+			// sleep 0.5s until a connection can be made
+			try {
+				this.mSocket = new MSocket(host, outPort);
+			} catch (IOException e) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		}
+		
 		this.packetQueue = packets;
 		
 		// Start a thread to handle ACKs
-		new Thread(new SafeSocketSenderAckThread(socket)).start();
+		new Thread(new SafeSocketSenderAckThread(this.mSocket)).start();
 	}
 	
 	public static void offerToken(MPacket token){
