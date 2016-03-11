@@ -35,12 +35,11 @@ public class SafeSocketListenerThread implements Runnable {
     }
     */
 
-    public SafeSocketListenerThread(String name, MSocket socket, SafeSocketSenderThread sender, BlockingQueue<MPacket> q){
+    public SafeSocketListenerThread(String name, MSocket socket, BlockingQueue<MPacket> q){
     	/* This thread fetches packets and replies with ACK
     	 * 
     	 */
         this.mSocket = socket;
-        this.senderThread = sender;
         this.myName = name;
         this.orderdOutputQueue = q;
     }
@@ -66,7 +65,7 @@ public class SafeSocketListenerThread implements Runnable {
     	token.removeMyMessages(this.myName);
     	
     	// 3- Offer token to sender thread
-    	this.senderThread.offerToken(token);
+    	SafeSocketSenderThread.offerToken(token);
     }
 
     

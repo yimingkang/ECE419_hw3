@@ -2,11 +2,11 @@ import java.util.concurrent.BlockingQueue;
 
 public class SafeSocketSenderThread implements Runnable {
 	public int sequenceNumber=1;
-	public int currentAck=0;
+	public static int currentAck=0;
 	public MSocket mSocket;
 	public BlockingQueue<MPacket> packetQueue;
-	public boolean hasToken = false;
-	public MPacket currentToken;
+	public static boolean hasToken = false;
+	public static MPacket currentToken;
 	
 	public SafeSocketSenderThread(MSocket socket, BlockingQueue<MPacket> packets){
 		this.mSocket = socket;
@@ -15,19 +15,19 @@ public class SafeSocketSenderThread implements Runnable {
 		// TODO: FIXME: start a thread to handle ACKs
 	}
 	
-	public void offerToken(MPacket token){
-		if (this.currentToken != null){
+	public static void offerToken(MPacket token){
+		if (SafeSocketSenderThread.currentToken != null){
 			System.out.println("ERROR: offering token when there's a token already!");
 			System.exit(-1);
 		}
 		// gets the TOKEN
-		this.currentToken = token;
-		this.hasToken = true;
+		SafeSocketSenderThread.currentToken = token;
+		SafeSocketSenderThread.hasToken = true;
 	}
 	
 	public MPacket prepareToken(){
 		// wait till we get a token
-		while (!this.hasToken){
+		while (!SafeSocketSenderThread.hasToken){
 			try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -35,8 +35,8 @@ public class SafeSocketSenderThread implements Runnable {
 				e.printStackTrace();
 			}
 		}
-        MPacket toDownstream = this.currentToken;
-        this.currentToken = null;
+        MPacket toDownstream = SafeSocketSenderThread.currentToken;
+        SafeSocketSenderThread.currentToken = null;
         
         // transfer all MPackets onto token
         int nMessages = this.packetQueue.size();
@@ -64,8 +64,8 @@ public class SafeSocketSenderThread implements Runnable {
         		MPacket toDownstream = this.prepareToken();
         		
                 // keep sending unless ACKed
-            	while (this.currentAck != this.sequenceNumber){
-            		if (this.currentAck > this.sequenceNumber){
+            	while (SafeSocketSenderThread.currentAck != this.sequenceNumber){
+            		if (SafeSocketSenderThread.currentAck > this.sequenceNumber){
             			System.out.println("ERROR: SEQUENCE NUMBER TOO BIG");
             			System.exit(-1);
             		}
@@ -84,8 +84,8 @@ public class SafeSocketSenderThread implements Runnable {
         }
     }
 	
-	public void updateAck(int ackNum){
-		this.currentAck = Math.max(ackNum, this.currentAck);
+	public static void updateAck(int ackNum){
+		SafeSocketSenderThread.currentAck = Math.max(ackNum, SafeSocketSenderThread.currentAck);
 	}
 
 }
