@@ -111,6 +111,9 @@ public class MPacket implements Serializable {
             case 200:
                 typeStr = "ACTION";
                 break;
+            case 300:
+                typeStr = "TOKEN";
+                break;
             default:
                 typeStr = "ERROR";
                 break;        

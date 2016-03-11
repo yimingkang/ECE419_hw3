@@ -9,7 +9,7 @@ public class SafeSocket {
 	private BlockingQueue<MPacket> writeBuffer;
 	private BlockingQueue<MPacket> readBuffer;
 	
-	public SafeSocket(String name, int inPort, int outPort) throws IOException{
+	public SafeSocket(String name, int inPort, int outPort, boolean tokenHolder) throws IOException{
 
 		this.myName = name;
 		this.writeBuffer = new LinkedBlockingQueue<MPacket>();
@@ -18,7 +18,7 @@ public class SafeSocket {
 		System.out.println("Starting SenderThread " + name);
 		
 		// have Sender thread connect to socket himself ==> impl retry!
-		new Thread(new SafeSocketSenderThread("localhost", outPort, this.writeBuffer)).start();
+		new Thread(new SafeSocketSenderThread("localhost", outPort, this.writeBuffer, tokenHolder)).start();
 		
 		
 		System.out.println("Starting ListenerThread " + name);
@@ -28,7 +28,7 @@ public class SafeSocket {
 	
 	// API confronting to MSocket
 	public void writeObject(MPacket packet){
-		System.out.print("writeObject got a packet, writing...");
+		//System.out.println("writeObject got a packet, writing...");
 		this.writeBuffer.add(packet);
 	}
 	

@@ -6,19 +6,21 @@ public class TestSafeSocket1 {
 	}
 	
 	public static void test(String name, int inSock, int outSock, int hasToken) throws IOException, InterruptedException{
-		SafeSocket sSock = new SafeSocket(name, inSock, outSock);
-		MPacket helloMessage = new MPacket(name, 100, 100);	
-
+		SafeSocket sSock = null;
 		if (hasToken == 1){
+			// Send a token
 			System.out.println("This thread has token, writing to outbound queue");
-			MPacket token = new MPacket();
-			token.addPacket(helloMessage);
-			sSock.writeObject(token);
+			sSock = new SafeSocket(name, inSock, outSock, true);
 		}else{
 			System.out.println("This thread has no token, waiting");
+			sSock = new SafeSocket(name, inSock, outSock, false);
 		}
 		
+		MPacket helloMessage = new MPacket(name, 100, 100);
+		sSock.writeObject(helloMessage);
+		
 		while(true){
+			sSock.writeObject(helloMessage);
 			Thread.sleep(1000);
 		}
 	}

@@ -5,7 +5,7 @@ import java.util.concurrent.BlockingQueue;
 
 public class SafeSocketListenerThread implements Runnable {
     private MSocket mSocket;
-    private int nextExpected = 0;
+    private int nextExpected = 1;
     public SafeSocketSenderThread senderThread;
     private PriorityQueue<MPacket> packetPriorityQueue = 
     		new PriorityQueue<MPacket>(50, new packetSequenceComparator());
@@ -36,6 +36,7 @@ public class SafeSocketListenerThread implements Runnable {
     
     
     public void sendAck(int ackNum){
+    	System.out.println("Sending ACK #" + ackNum);
     	MPacket ackPacket = new MPacket(ackNum);
     	this.mSocket.writeObject(ackPacket);
     }
@@ -52,8 +53,10 @@ public class SafeSocketListenerThread implements Runnable {
     	}
     	
     	// 2- Delete everything mine from the head
+    	System.out.println("Removing all msgs with myName");
     	token.removeMyMessages(this.myName);
     	
+    	System.out.println("Offering token to sender, prev. token seq #" + token.sequenceNumber);
     	// 3- Offer token to sender thread
     	SafeSocketSenderThread.offerToken(token);
     }
@@ -80,9 +83,8 @@ public class SafeSocketListenerThread implements Runnable {
         
         while(true){
             try{
-            	System.out.println("Listening for packets...");
                 received = (MPacket) mSocket.readObject();
-            	System.out.println("Got a packet");
+            	System.out.println("Got a packet #" + received.sequenceNumber);
 
                 
                 // check that we've got TOKEN object
@@ -95,7 +97,11 @@ public class SafeSocketListenerThread implements Runnable {
                 this.sendAck(received.sequenceNumber);
                 
                 // correct the OO packets with a PQ
-                this.packetPriorityQueue.offer(received);
+                if (received.sequenceNumber >= this.nextExpected){
+                	// discard duplicates...basically
+                    this.packetPriorityQueue.offer(received);
+                }
+
                 while (this.packetPriorityQueue.size() != 0 && this.packetPriorityQueue.peek().sequenceNumber == this.nextExpected){
                     this.nextExpected++;
                     received = this.packetPriorityQueue.poll();
