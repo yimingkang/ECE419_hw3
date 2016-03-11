@@ -12,11 +12,12 @@ public class SafeSocketSenderThread implements Runnable {
 		this.mSocket = socket;
 		this.packetQueue = packets;
 		
-		// TODO: FIXME: start a thread to handle ACKs
+		// Start a thread to handle ACKs
+		new Thread(new SafeSocketSenderAckThread(socket)).start();
 	}
 	
 	public static void offerToken(MPacket token){
-		if (SafeSocketSenderThread.currentToken != null){
+		if (SafeSocketSenderThread.currentToken != null || SafeSocketSenderThread.hasToken){
 			System.out.println("ERROR: offering token when there's a token already!");
 			System.exit(-1);
 		}
@@ -36,7 +37,6 @@ public class SafeSocketSenderThread implements Runnable {
 			}
 		}
         MPacket toDownstream = SafeSocketSenderThread.currentToken;
-        SafeSocketSenderThread.currentToken = null;
         
         // transfer all MPackets onto token
         int nMessages = this.packetQueue.size();
@@ -52,6 +52,19 @@ public class SafeSocketSenderThread implements Runnable {
 
         // set sequence number
         toDownstream.sequenceNumber = this.sequenceNumber;
+        
+        // TODO: FIXME:
+        
+        /* 
+         * Network delay MIGHT cause this token to loop around the ring before
+         * an ACK is received. Therefore we need to make sure to clear 
+         * this before any attempt to writeObject() is made, otherwise 
+         * offerToken() will fail
+         * 
+         * This is very important!! 
+         */
+        SafeSocketSenderThread.currentToken = null;
+    	SafeSocketSenderThread.hasToken = false;
         
         // off you go!
         return toDownstream;

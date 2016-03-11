@@ -21,19 +21,6 @@ public class SafeSocketListenerThread implements Runnable {
             return x.sequenceNumber - y.sequenceNumber;
         }
     }
-    
-    /* TODO FIXME move this to the ACK thread of SafeSocketSender
-
-    if (received.event == MPacket.ACK){
-    	// this is an ACK to a previously sent token, notify sender
-    	this.notifySenderAck(received.ackNum);
-    	continue;
-    }
-
-    public void notifySenderAck(int ackNum){
-    	this.senderThread.updateAck(ackNum);
-    }
-    */
 
     public SafeSocketListenerThread(String name, MSocket socket, BlockingQueue<MPacket> q){
     	/* This thread fetches packets and replies with ACK
