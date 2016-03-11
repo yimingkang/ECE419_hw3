@@ -8,29 +8,15 @@ public class SafeSocketSenderThread implements Runnable {
 	public BlockingQueue<MPacket> packetQueue;
 	public static boolean hasToken = false;
 	public static MPacket currentToken;
+	public String host;
+	public int outPort;
 	
 	public SafeSocketSenderThread(String host, int outPort, BlockingQueue<MPacket> packets){
 		/*** Place all outbound MPackets in the blocking queue ***/
-		
-		// create socket and start sender thread
-		while (this.mSocket == null){
-			// sleep 0.5s until a connection can be made
-			try {
-				this.mSocket = new MSocket(host, outPort);
-			} catch (IOException e) {
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-			}
-		}
-		
+
+		this.host = host;
+		this.outPort = outPort;
 		this.packetQueue = packets;
-		
-		// Start a thread to handle ACKs
-		new Thread(new SafeSocketSenderAckThread(this.mSocket)).start();
 	}
 	
 	public static void offerToken(MPacket token){
@@ -88,9 +74,29 @@ public class SafeSocketSenderThread implements Runnable {
 	}
 	
     public void run() {
+		System.out.println("SafeSocketSenderThread starting...");
+		// create socket and start sender thread
+		while (this.mSocket == null){
+			// sleep 0.5s until a connection can be made
+			try {
+				this.mSocket = new MSocket(this.host, this.outPort);
+			} catch (IOException e) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		}
+		
+		// Start a thread to handle ACKs
+		new Thread(new SafeSocketSenderAckThread(this.mSocket)).start();
+		
         while(true){
             try{                
                 // Wait until we have a token to send
+            	System.out.println("Preparing to send token...");
         		MPacket toDownstream = this.prepareToken();
         		
                 // keep sending unless ACKed
@@ -99,6 +105,7 @@ public class SafeSocketSenderThread implements Runnable {
             			System.out.println("ERROR: SEQUENCE NUMBER TOO BIG");
             			System.exit(-1);
             		}
+                	System.out.println("Sending token!");
             		
                     mSocket.writeObject(toDownstream);
 

@@ -11,6 +11,8 @@ public class SafeSocketListenerThread implements Runnable {
     		new PriorityQueue<MPacket>(50, new packetSequenceComparator());
     public BlockingQueue<MPacket> orderdOutputQueue;
     public String myName;
+    private MServerSocket mServerSocket = null;
+    public int inPort;
 	
     
     public class packetSequenceComparator implements Comparator<MPacket>
@@ -22,11 +24,12 @@ public class SafeSocketListenerThread implements Runnable {
         }
     }
 
-    public SafeSocketListenerThread(String name, MSocket socket, BlockingQueue<MPacket> q){
+    public SafeSocketListenerThread(String name, int inPort, BlockingQueue<MPacket> q){
     	/* This thread fetches packets from ordered tokens and places them in q
     	 * 
     	 */
-        this.mSocket = socket;
+
+    	this.inPort = inPort;
         this.myName = name;
         this.orderdOutputQueue = q;
     }
@@ -57,11 +60,30 @@ public class SafeSocketListenerThread implements Runnable {
 
     
     public void run() {
+		System.out.println("SafeSocketListenerThread starting...");
+		// create a socket and start listener thread
+		try {
+			this.mServerSocket = new MServerSocket(this.inPort);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+        try {
+			this.mSocket = this.mServerSocket.accept();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
         MPacket received = null;
         
         while(true){
             try{
+            	System.out.println("Listening for packets...");
                 received = (MPacket) mSocket.readObject();
+            	System.out.println("Got a packet");
+
                 
                 // check that we've got TOKEN object
                 if (received.event != MPacket.TOKEN){
