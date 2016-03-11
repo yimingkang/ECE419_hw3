@@ -22,7 +22,8 @@ public class SafeSocketListenerThread implements Runnable {
         }
     }
     
-    /* TODO FIXME
+    /* TODO FIXME move this to the ACK thread of SafeSocketSender
+
     if (received.event == MPacket.ACK){
     	// this is an ACK to a previously sent token, notify sender
     	this.notifySenderAck(received.ackNum);
@@ -44,6 +45,12 @@ public class SafeSocketListenerThread implements Runnable {
         this.orderdOutputQueue = q;
     }
     
+    
+    public void sendAck(int ackNum){
+    	MPacket ackPacket = new MPacket(ackNum);
+    	this.mSocket.writeObject(ackPacket);
+    }
+    
     public void processToken(MPacket token){
     	// 1- Fetch all packets off token
     	for(MPacket msg: token.eventQueue){
@@ -61,18 +68,7 @@ public class SafeSocketListenerThread implements Runnable {
     	// 3- Offer token to sender thread
     	this.senderThread.offerToken(token);
     }
-    
-    public MPacket getPacket(){
-    	// gets the next IN-ORDER packet
-    	MPacket next = null;
-    	try {
-			next = this.orderdOutputQueue.take();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return next;
-    }
+
     
     public void run() {
         MPacket received = null;
@@ -81,7 +77,10 @@ public class SafeSocketListenerThread implements Runnable {
             try{
                 received = (MPacket) mSocket.readObject();
                 
-                // otherwise this is a legitimate token!
+                // ACK on all read objects
+                this.sendAck(received.sequenceNumber);
+                
+                // correct the OO packets with a PQ
                 this.packetPriorityQueue.offer(received);
                 while (this.packetPriorityQueue.size() != 0 && this.packetPriorityQueue.peek().sequenceNumber == this.nextExpected){
                     this.nextExpected++;

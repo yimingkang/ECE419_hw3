@@ -11,6 +11,8 @@ public class SafeSocketSenderThread implements Runnable {
 	public SafeSocketSenderThread(MSocket socket, BlockingQueue<MPacket> packets){
 		this.mSocket = socket;
 		this.packetQueue = packets;
+		
+		// TODO: FIXME: start a thread to handle ACKs
 	}
 	
 	public void offerToken(MPacket token){
