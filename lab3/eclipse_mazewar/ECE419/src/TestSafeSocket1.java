@@ -15,12 +15,13 @@ public class TestSafeSocket1 {
 			System.out.println("This thread has no token, waiting");
 			sSock = new SafeSocket(name, inSock, outSock, false);
 		}
-		
-		MPacket helloMessage = new MPacket(name, 100, 100);
-		sSock.writeObject(helloMessage);
-		
+				
+		int seq = 0;
 		while(true){
+			MPacket helloMessage = new MPacket(name, 100, 100);
+			helloMessage.sequenceNumber = seq++;
 			sSock.writeObject(helloMessage);
+			
 			Thread.sleep(1000);
 		}
 	}

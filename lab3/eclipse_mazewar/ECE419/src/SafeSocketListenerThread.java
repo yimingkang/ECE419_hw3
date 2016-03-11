@@ -36,7 +36,7 @@ public class SafeSocketListenerThread implements Runnable {
     
     
     public void sendAck(int ackNum){
-    	System.out.println("Sending ACK #" + ackNum);
+    	//System.out.println("Sending ACK #" + ackNum);
     	MPacket ackPacket = new MPacket(ackNum);
     	this.mSocket.writeObject(ackPacket);
     }
@@ -46,6 +46,7 @@ public class SafeSocketListenerThread implements Runnable {
     	for(MPacket msg: token.eventQueue){
     		try {
 				this.orderdOutputQueue.put(msg);
+				System.out.format("Msg became available <%s, #%d>\n", msg.name, msg.sequenceNumber);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -53,10 +54,10 @@ public class SafeSocketListenerThread implements Runnable {
     	}
     	
     	// 2- Delete everything mine from the head
-    	System.out.println("Removing all msgs with myName");
+    	//System.out.println("Removing all msgs with myName");
     	token.removeMyMessages(this.myName);
     	
-    	System.out.println("Offering token to sender, prev. token seq #" + token.sequenceNumber);
+    	//System.out.println("Offering token to sender, prev. token seq #" + token.sequenceNumber);
     	// 3- Offer token to sender thread
     	SafeSocketSenderThread.offerToken(token);
     }
@@ -84,7 +85,7 @@ public class SafeSocketListenerThread implements Runnable {
         while(true){
             try{
                 received = (MPacket) mSocket.readObject();
-            	System.out.println("Got a packet #" + received.sequenceNumber);
+            	//System.out.println("Got a packet #" + received.sequenceNumber);
 
                 
                 // check that we've got TOKEN object
@@ -105,7 +106,7 @@ public class SafeSocketListenerThread implements Runnable {
                 while (this.packetPriorityQueue.size() != 0 && this.packetPriorityQueue.peek().sequenceNumber == this.nextExpected){
                     this.nextExpected++;
                     received = this.packetPriorityQueue.poll();
-                    System.out.println("Processing packet #" + received.sequenceNumber);
+                    //System.out.println("Processing packet #" + received.sequenceNumber);
                     
                     // next packet goes straight to the output queue, packets here are ORDERED!!
                     this.processToken(received);

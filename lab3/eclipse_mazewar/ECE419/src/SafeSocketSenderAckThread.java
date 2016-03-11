@@ -13,7 +13,7 @@ public class SafeSocketSenderAckThread implements Runnable{
         while(true){
             try{
                 received = (MPacket) mSocket.readObject();  
-                System.out.println("Got ack #" + received.ackNum);
+                //System.out.println("Got ack #" + received.ackNum);
                 
                 if (received.event != MPacket.ACK){
                 	System.out.println("ERROR: Expecting packet type ACK, got " + received.event + " instead");
