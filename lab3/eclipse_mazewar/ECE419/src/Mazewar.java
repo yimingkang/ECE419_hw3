@@ -175,6 +175,8 @@ public class Mazewar extends JFrame {
 
                 //Receive response from server
                 MPacket resp = mSocket.getHelloResponse();
+                
+                mSocket.start();
 
                 //Initialize queue of events
                 eventQueue = new LinkedBlockingQueue<MPacket>();

@@ -1,0 +1,34 @@
+import java.util.concurrent.BlockingQueue;
+
+public class ClientSenderThread implements Runnable {
+
+    private SafeSocket mSocket = null;
+    private BlockingQueue<MPacket> eventQueue = null;
+    
+    public ClientSenderThread(SafeSocket mSocket,
+                              BlockingQueue eventQueue){
+    	
+    	/* This file can be completely avoided but oh well
+
+    	 */
+        this.mSocket = mSocket;
+        this.eventQueue = eventQueue;
+    }
+    
+    public void run() {
+        MPacket toServer = null;
+        if(Debug.debug) System.out.println("Starting ClientSenderThread");
+        while(true){
+            try{                
+                //Take packet from queue
+                toServer = (MPacket)eventQueue.take();
+                if(Debug.debug) System.out.println("Sending " + toServer);
+                mSocket.writeObject(toServer);    
+            }catch(InterruptedException e){
+                e.printStackTrace();
+                Thread.currentThread().interrupt();    
+            }
+            
+        }
+    }
+}

@@ -7,6 +7,9 @@ public class ClientSenderThread implements Runnable {
     
     public ClientSenderThread(SafeSocket mSocket,
                               BlockingQueue eventQueue){
+    	
+    	/* This file can be completely avoided but oh well
+    	 */
         this.mSocket = mSocket;
         this.eventQueue = eventQueue;
     }
@@ -16,7 +19,7 @@ public class ClientSenderThread implements Runnable {
         if(Debug.debug) System.out.println("Starting ClientSenderThread");
         while(true){
             try{                
-                //Take packet from queue
+                //Take packet from queue and put into SafeSocket's queue
                 toServer = (MPacket)eventQueue.take();
                 if(Debug.debug) System.out.println("Sending " + toServer);
                 mSocket.writeObject(toServer);    
