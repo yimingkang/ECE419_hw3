@@ -48,6 +48,11 @@ public class MPacket implements Serializable {
     // ack number
     public int ackNum;
     
+    // in/out ports
+    public int inPort;
+    public int outPort;
+    public boolean isTokenHolder;
+    
     // event queue
     public BlockingQueue<MPacket> eventQueue = null;
     
@@ -81,6 +86,7 @@ public class MPacket implements Serializable {
 			}
     	}
     }
+ 
     
     public MPacket(int type, int event){
         this.type = type;

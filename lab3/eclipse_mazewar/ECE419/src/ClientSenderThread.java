@@ -1,13 +1,11 @@
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.concurrent.BlockingQueue;
 
 public class ClientSenderThread implements Runnable {
 
-    private MSocket mSocket = null;
+    private SafeSocket mSocket = null;
     private BlockingQueue<MPacket> eventQueue = null;
     
-    public ClientSenderThread(MSocket mSocket,
+    public ClientSenderThread(SafeSocket mSocket,
                               BlockingQueue eventQueue){
         this.mSocket = mSocket;
         this.eventQueue = eventQueue;
