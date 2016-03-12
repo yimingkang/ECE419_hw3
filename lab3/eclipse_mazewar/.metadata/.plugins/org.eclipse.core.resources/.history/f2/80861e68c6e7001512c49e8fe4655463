@@ -1,0 +1,25 @@
+import java.io.IOException;
+
+public class TestSafeSocket1 {
+	public TestSafeSocket1(){
+		// Create a SafeSocket
+	}
+	
+	public static void test(String name, int inSock, int outSock, int hasToken) throws IOException{
+		SafeSocket sSock = new SafeSocket(name, inSock, outSock);
+		MPacket helloMessage = new MPacket(name, 100, 100);	
+
+		MPacket token = new MPacket();
+
+		token.addPacket(helloMessage);
+		sSock.writeObject(token);
+		return;
+	}
+	public static void main (String[] args) throws IOException {
+		// test functions
+		// process 1	
+				
+		System.out.println("Starting SSOCK " + args[0]);
+		TestSafeSocket1.test(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]));
+	}
+}

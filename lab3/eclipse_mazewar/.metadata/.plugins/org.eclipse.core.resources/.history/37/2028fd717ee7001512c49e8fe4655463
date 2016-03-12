@@ -1,0 +1,40 @@
+import java.io.IOException;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class SafeSocket {
+	public String myName;
+	public int inPort;
+	
+    private MServerSocket mServerSocket = null;
+    private MSocket mInboundSocket = null;    
+	
+	private BlockingQueue<MPacket> writeBuffer;
+	private BlockingQueue<MPacket> readBuffer;
+	
+	public SafeSocket(String name, int inPort, int outPort) throws IOException{
+
+		this.myName = name;
+		this.writeBuffer = new LinkedBlockingQueue<MPacket>();
+		this.readBuffer = new LinkedBlockingQueue<MPacket>();
+		
+
+		new Thread(new SafeSocketSenderThread("localhost", outPort, this.writeBuffer)).start();
+		
+		// create a socket and start listener thread
+		this.mServerSocket = new MServerSocket(inPort);
+		this.mInboundSocket = this.mServerSocket.accept();
+		new Thread(new SafeSocketListenerThread(name, this.mInboundSocket, this.readBuffer)).start();
+	}
+	
+	
+	// API confronting to MSocket
+	public void writeObject(MPacket packet){
+		this.writeBuffer.add(packet);
+	}
+	
+	// API confronting to MSocket
+	public MPacket readObject() throws InterruptedException{
+		return this.readBuffer.take();
+	}
+}

@@ -1,0 +1,18 @@
+
+public class SafeSocketSenderThread implements Runnable {
+	public SafeSocketSenderThread(){
+		
+	}
+	
+	public void run(){
+		/*	1- Fetch object from queue
+		 * 		- While not ACK
+		 * 		- Check time, if TO ==> RESEND
+		 * 		- 
+		 * 
+		 * 
+		 */
+		
+	}
+
+}

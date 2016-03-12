@@ -1,0 +1,52 @@
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.PriorityQueue;
+
+public class SafeSocketListenerThread implements Runnable {
+    private MSocket mSocket;
+    private int nextExpected = 0;
+    public SafeSocketSenderThread senderThread;
+    private PriorityQueue<MPacket> packetPriorityQueue = 
+    		new PriorityQueue<MPacket>(50, new packetSequenceComparator());
+	
+    
+    public class packetSequenceComparator implements Comparator<MPacket>
+    {
+        @Override
+        public int compare(MPacket x, MPacket y)
+        {
+            return x.sequenceNumber - y.sequenceNumber;
+        }
+    }
+    
+    public void notifySenderAck(int ackNum){
+    	this.senderThread.updateAck(ackNum);
+    }
+
+    public SafeSocketListenerThread(MSocket socket, SafeSocketSenderThread sender){
+        this.mSocket = socket;
+        this.senderThread = sender;
+    }
+    
+    public void run() {
+        MPacket received = null;
+        Client client = null;
+        
+        while(true){
+            try{
+                received = (MPacket) mSocket.readObject();
+                this.packetPriorityQueue.offer(received);
+                int headSeqNumer = this.packetPriorityQueue.peek().sequenceNumber;
+                while (this.packetPriorityQueue.size() != 0 && this.packetPriorityQueue.peek().sequenceNumber == this.nextExpected){
+                    this.nextExpected++;
+                    received = this.packetPriorityQueue.poll();
+                    System.out.println("Processing packet #" + received.sequenceNumber);
+                }
+            }catch(IOException e){
+                e.printStackTrace();
+            }catch(ClassNotFoundException e){
+                e.printStackTrace();
+            }            
+        }
+    }
+}

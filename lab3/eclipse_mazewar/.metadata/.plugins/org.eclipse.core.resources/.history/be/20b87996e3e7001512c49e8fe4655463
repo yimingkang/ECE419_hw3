@@ -1,0 +1,36 @@
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class NamingServer {
+    private static final int MAX_CLIENTS = 2;
+
+    public static void main(String args[]) throws IOException {
+        int port = Integer.parseInt(args[0]);
+        System.out.println("Starting naming server on port " + port);
+        int socketBasePort = 8000;
+        int nextAssignedPort = 8000;
+        
+        int clientCount = 0;
+        ServerSocket sSocket = new ServerSocket(port);
+        OutputStreamWriter writer;
+
+        for (clientCount = 0; clientCount < NamingServer.MAX_CLIENTS; clientCount++){
+        	Socket client = sSocket.accept();
+        	writer = new OutputStreamWriter(client.getOutputStream());
+        	
+        	// input port
+        	writer.write(Integer.toString(nextAssignedPort));
+        	nextAssignedPort++;
+        	
+        	if(clientCount == NamingServer.MAX_CLIENTS - 1){
+        		// last one wraps around
+            	writer.write(Integer.toString(socketBasePort));
+        	}else{
+            	writer.write(Integer.toString(nextAssignedPort));
+        	}
+        }
+    }
+
+}

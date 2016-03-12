@@ -1,0 +1,12 @@
+
+public class SafeSocketListenerThread implements Runnable {
+	public int nextExpectedPacketNumber=0, nextSendPacketNumber=0;
+
+	public SafeSocketListenerThread(){
+		
+	}
+	
+    public void run() {
+    	
+    }
+}

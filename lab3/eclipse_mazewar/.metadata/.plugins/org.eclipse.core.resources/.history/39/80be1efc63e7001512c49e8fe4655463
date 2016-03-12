@@ -1,0 +1,40 @@
+
+public class SafeSocketListenerThread implements Runnable {
+    private MSocket mSocket  =  null;
+    private Hashtable<String, Client> clientTable = null;
+    private int nextExpected = 0;
+    private PriorityQueue<MPacket> packetPriorityQueue = 
+        new PriorityQueue<MPacket>(50, new packetSequenceComparator());
+	
+	public SafeSocketListenerThread(){
+		
+	}
+
+
+    public class packetSequenceComparator implements Comparator<MPacket>
+    {
+        @Override
+        public int compare(MPacket x, MPacket y)
+        {
+            return x.sequenceNumber - y.sequenceNumber;
+        }
+    }
+
+    public class objSequenceComparator implements Comparator<Object>
+    {
+        @Override
+        public int compare(Object _x, Object _y)
+        {
+            MPacket x = (MPacket) _x;
+            MPacket y = (MPacket) _y;
+            return x.sequenceNumber - y.sequenceNumber;
+        }
+    }
+
+    public ClientListenerThread( MSocket mSocket,
+                                Hashtable<String, Client> clientTable){
+        this.mSocket = mSocket;
+        this.clientTable = clientTable;
+        if(Debug.debug) System.out.println("Instatiating ClientListenerThread");
+    }
+}

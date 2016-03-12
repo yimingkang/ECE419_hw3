@@ -1,0 +1,5 @@
+
+public class NamingServer {
+    private static final int MAX_CLIENTS = 2;
+
+}

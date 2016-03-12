@@ -1,0 +1,25 @@
+
+public class SafeSocketSenderThread implements Runnable {
+	public int currentAck;
+	
+	public SafeSocketSenderThread(){
+		
+	}
+	
+	public void run(){
+		/*	1- Fetch object from queue
+		 * 		- While not ACK
+		 * 		- Check time
+		 * 			- if TO ==> RESEND
+		 * 			- else, loop back
+		 * 
+		 * 
+		 */
+		
+	}
+	
+	public void updateAck(int ackNum){
+		this.currentAck = max(ackNum, this.currentAck);
+	}
+
+}

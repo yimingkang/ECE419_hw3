@@ -1,0 +1,74 @@
+import java.util.concurrent.BlockingQueue;
+
+public class SafeSocketSenderThread implements Runnable {
+	public int sequenceNumber=1;
+	public int currentAck=0;
+	public MSocket mSocket;
+	public BlockingQueue<MPacket> packetQueue;
+	public boolean hasToken = false;
+	public MPacket currentToken;
+	
+	public SafeSocketSenderThread(MSocket socket, BlockingQueue<MPacket> packets){
+		this.mSocket = socket;
+		this.packetQueue = packets;
+	}
+	
+	public void offerToken(MPacket token){
+		if (this.currentToken != null){
+			System.out.println("ERROR: offering token when there's a token already!");
+			System.exit(-1);
+		}
+		// gets the TOKEN
+		this.currentToken = token;
+		this.hasToken = true;
+	}
+	
+	public MPacket prepareToken(){
+		while (!this.hasToken){
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+        MPacket toServer = null;
+        toServer = (MPacket) this.packetQueue.take();
+        toServer.sequenceNumber = this.sequenceNumber;
+		// has token now!
+	}
+	
+    public void run() {
+        while(true){
+            try{                
+                // Wait until we have a token to send
+        		MPacket toServer = this.prepareToken();
+        		
+                // keep sending unless ACKed
+            	while (this.currentAck != this.sequenceNumber){
+            		if (this.currentAck > this.sequenceNumber){
+            			System.out.println("ERROR: SEQUENCE NUMBER TOO BIG");
+            			System.exit(-1);
+            		}
+            		
+            		// TODO: FIXME: Construct a TOKEN when possible
+                    mSocket.writeObject(toServer);
+
+                    
+                    // re-send every 100ms
+                    Thread.sleep(100);
+            	}
+            	this.sequenceNumber++;
+            }catch(InterruptedException e){
+                e.printStackTrace();
+                Thread.currentThread().interrupt();    
+            }
+            
+        }
+    }
+	
+	public void updateAck(int ackNum){
+		this.currentAck = Math.max(ackNum, this.currentAck);
+	}
+
+}

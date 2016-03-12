@@ -1,0 +1,7 @@
+
+public class TestSafeSocket1 {
+	public TestSafeSocket1(){
+		// Create a SafeSocket
+	}
+
+}

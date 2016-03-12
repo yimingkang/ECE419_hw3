@@ -1,0 +1,27 @@
+import java.util.concurrent.BlockingQueue;
+
+public class SafeSocketSenderThread implements Runnable {
+	public int currentAck=0;
+	public MSocket mSocket;
+	public BlockingQueue<MPacket> packetQueue;
+	
+	public SafeSocketSenderThread(MSocket socket, BlockingQueue<MPacket> packets){
+		this.mSocket = socket;
+		this.packetQueue = packets;
+	}
+	
+	public void run(){
+		/*	1- Fetch object from queue
+		 * 		- While not ACK
+		 * 		- Check time
+		 * 			- if TO ==> RESEND
+		 * 			- else, loop back
+		 */
+		
+	}
+	
+	public void updateAck(int ackNum){
+		this.currentAck = Math.max(ackNum, this.currentAck);
+	}
+
+}

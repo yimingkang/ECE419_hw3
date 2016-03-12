@@ -1,0 +1,7 @@
+
+public class SafeSocket {
+	public SafeSocket(String name){
+		
+	}
+
+}

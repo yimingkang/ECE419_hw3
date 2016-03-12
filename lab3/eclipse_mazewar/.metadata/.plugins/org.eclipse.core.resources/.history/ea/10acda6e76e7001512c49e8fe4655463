@@ -1,0 +1,28 @@
+import java.io.IOException;
+
+public class SafeSocketSenderAckThread implements Runnable{
+	public SafeSocketSenderThread senderThread;
+	public MSocket mSocket;
+	
+	public SafeSocketSenderAckThread(MSocket socket, SafeSocketSenderThread sender){
+		this.mSocket = socket;
+		this.senderThread = sender;
+	}
+	
+	public void run(){
+        MPacket received = null;
+        
+        while(true){
+            try{
+                received = (MPacket) mSocket.readObject();
+                
+                if (received.event != MPacket.ACK)
+            }catch(IOException e){
+                e.printStackTrace();
+            }catch(ClassNotFoundException e){
+                e.printStackTrace();
+            }            
+        }
+	}
+
+}

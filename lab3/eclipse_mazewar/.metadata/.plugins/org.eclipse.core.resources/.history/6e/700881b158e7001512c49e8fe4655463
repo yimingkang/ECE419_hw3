@@ -1,0 +1,32 @@
+import java.util.concurrent.BlockingQueue;
+import java.io.IOException;
+import java.util.PriorityQueue;
+
+public class SafeSocket {
+	public final String name;
+	public MSocket senderSocket, receiverSocket;
+	public BlockingQueue<MPacket> sendQueue, receiveQueue;
+	public int inputPort, outputPort;
+	public int nextExpectedPacketNumber=0, nextSendPacketNumber=0;
+	public PriorityQueue<MPacket> reorderQueue; 
+	
+	
+	public SafeSocket(String name){
+		this.name = name;
+	}
+	
+	public void writeObject(MPacket packet){
+		// 1- write to sendQueue
+		// 2- return
+		this.sendQueue.add(packet);
+		return
+	}
+	
+    public synchronized MPacket readObject() throws IOException, ClassNotFoundException{
+    	
+    	return  (MPacket) new Object();	
+	}
+	
+	
+
+}

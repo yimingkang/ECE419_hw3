@@ -1,0 +1,12 @@
+
+public class SafeSocketSenderThread implements Runnable{
+	public int nextSendPacketNumber=0;
+	public SafeSocketSenderThread(){
+		// sender needs to know the dest.
+		
+	}
+	
+    public void run() {
+    	
+    }
+}

@@ -1,0 +1,89 @@
+import java.io.IOException;
+import java.util.Comparator;
+import java.util.PriorityQueue;
+import java.util.concurrent.BlockingQueue;
+
+public class SafeSocketListenerThread implements Runnable {
+    private MSocket mSocket;
+    private int nextExpected = 0;
+    public SafeSocketSenderThread senderThread;
+    private PriorityQueue<MPacket> packetPriorityQueue = 
+    		new PriorityQueue<MPacket>(50, new packetSequenceComparator());
+    public BlockingQueue<MPacket> orderdOutputQueue;
+	
+    
+    public class packetSequenceComparator implements Comparator<MPacket>
+    {
+        @Override
+        public int compare(MPacket x, MPacket y)
+        {
+            return x.sequenceNumber - y.sequenceNumber;
+        }
+    }
+    
+    public void notifySenderAck(int ackNum){
+    	this.senderThread.updateAck(ackNum);
+    }
+
+    public SafeSocketListenerThread(MSocket socket, SafeSocketSenderThread sender){
+        this.mSocket = socket;
+        this.senderThread = sender;
+    }
+    
+    public void processToken(MPacket token){
+    	// TODO: FIXME: 
+    	// 1- Fetch all packets off token
+    	// 2- Delete everything mine from the head
+    	// 3- Offer token to sender thread    	
+    	for(MPacket msg: token.eventQueue){
+    		this.orderdOutputQueue.put(msg);
+    	}
+    	//
+    	
+    }
+    
+    public MPacket getPacket(){
+    	// gets the next IN-ORDER packet
+    	MPacket next = null;
+    	try {
+			next = this.orderdOutputQueue.take();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return next;
+    }
+    
+    public void run() {
+        MPacket received = null;
+        
+        while(true){
+            try{
+                received = (MPacket) mSocket.readObject();
+                
+                if (received.event == MPacket.ACK){
+                	// this is an ACK to a previously sent message, notify sender
+                	this.notifySenderAck(received.ackNum);
+                	continue;
+                }
+
+                // otherwise this is a legitimate message!
+                this.packetPriorityQueue.offer(received);
+                while (this.packetPriorityQueue.size() != 0 && this.packetPriorityQueue.peek().sequenceNumber == this.nextExpected){
+                    this.nextExpected++;
+                    received = this.packetPriorityQueue.poll();
+                    System.out.println("Processing packet #" + received.sequenceNumber);
+                    
+                    // next packet goes straight to the output queue, packets here are ORDERED!!
+                    this.processToken(received);
+                }
+            }catch(IOException e){
+                e.printStackTrace();
+            }catch(ClassNotFoundException e){
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+				e.printStackTrace();
+			}            
+        }
+    }
+}

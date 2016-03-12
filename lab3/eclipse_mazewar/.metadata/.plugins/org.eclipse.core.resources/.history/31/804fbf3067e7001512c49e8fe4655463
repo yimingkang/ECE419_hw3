@@ -1,0 +1,53 @@
+import java.util.concurrent.BlockingQueue;
+
+public class SafeSocketSenderThread implements Runnable {
+	public int sequenceNumber=1;
+	public int currentAck=0;
+	public MSocket mSocket;
+	public BlockingQueue<MPacket> packetQueue;
+	public boolean hasToken = false;
+	
+	public SafeSocketSenderThread(MSocket socket, BlockingQueue<MPacket> packets){
+		this.mSocket = socket;
+		this.packetQueue = packets;
+	}
+	
+	public void offerToken(MPacket token){
+		this.hasToken = true;
+	}
+	
+    public void run() {
+        MPacket toServer = null;
+        while(true){
+            try{                
+                //Take packet from queue
+                toServer = (MPacket) this.packetQueue.take();
+                toServer.sequenceNumber = this.sequenceNumber;
+                
+                // keep sending unless ACKed
+            	while (this.currentAck != this.sequenceNumber){
+            		if (this.currentAck > this.sequenceNumber){
+            			System.out.println("ERROR: SEQUENCE NUMBER TOO BIG");
+            			System.exit(-1);
+            		}
+            		
+            		// TODO: FIXME: Construct a TOKEN when possible
+                    // mSocket.writeObject(toServer);
+                    
+                    // re-send every 100ms
+                    Thread.sleep(100);
+            	}
+            	this.sequenceNumber++;
+            }catch(InterruptedException e){
+                e.printStackTrace();
+                Thread.currentThread().interrupt();    
+            }
+            
+        }
+    }
+	
+	public void updateAck(int ackNum){
+		this.currentAck = Math.max(ackNum, this.currentAck);
+	}
+
+}

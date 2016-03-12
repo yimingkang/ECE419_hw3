@@ -1,0 +1,15 @@
+
+public class SafeSocketUpstreamThread implements Runnable{
+	
+	public SafeSocketUpstreamThread(){
+		/* This is the UPSTREAM thread ==>
+		 * 
+		 * 
+		 */
+		
+	}
+	
+    public void run() {
+    	
+    }
+}

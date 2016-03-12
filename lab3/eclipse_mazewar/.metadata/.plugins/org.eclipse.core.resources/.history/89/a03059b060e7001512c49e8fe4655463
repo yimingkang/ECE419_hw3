@@ -1,0 +1,18 @@
+
+public class SafeSocketDownstreamThread implements Runnable {
+	public int nextExpectedPacketNumber=0;
+
+	public SafeSocketDownstreamThread(){
+		
+	}
+	
+    public void run() {
+    	/* 1 - Receive ACK
+    	 * 		- 
+    	 * 
+    	 * 
+    	 */
+    	
+    	
+    }
+}

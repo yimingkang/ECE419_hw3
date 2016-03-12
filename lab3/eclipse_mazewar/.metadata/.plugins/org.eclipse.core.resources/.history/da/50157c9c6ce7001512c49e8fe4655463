@@ -1,0 +1,89 @@
+import java.util.concurrent.BlockingQueue;
+
+public class SafeSocketSenderThread implements Runnable {
+	public int sequenceNumber=1;
+	public int currentAck=0;
+	public MSocket mSocket;
+	public BlockingQueue<MPacket> packetQueue;
+	public boolean hasToken = false;
+	public MPacket currentToken;
+	public String myName;
+	
+	public SafeSocketSenderThread(String name, MSocket socket, BlockingQueue<MPacket> packets){
+		this.mSocket = socket;
+		this.packetQueue = packets;
+		this.myName = name;
+	}
+	
+	public void offerToken(MPacket token){
+		if (this.currentToken != null){
+			System.out.println("ERROR: offering token when there's a token already!");
+			System.exit(-1);
+		}
+		// gets the TOKEN
+		this.currentToken = token;
+		this.hasToken = true;
+	}
+	
+	public MPacket prepareToken(){
+		while (!this.hasToken){
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+        MPacket toDownstream = this.currentToken;
+        this.currentToken = null;
+        
+        int nMessages = this.packetQueue.size();
+            	
+    	for (int i = 0; i < nMessages; i++){
+    		MPacket msg = null;
+			try {
+				msg = this.packetQueue.take();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+    		toDownstream.addPacket(msg);
+    	}
+
+        // set sequence number
+        toDownstream.sequenceNumber = this.sequenceNumber;
+        
+        return toDownstream;
+	}
+	
+    public void run() {
+        while(true){
+            try{                
+                // Wait until we have a token to send
+        		MPacket toDownstream = this.prepareToken();
+        		
+                // keep sending unless ACKed
+            	while (this.currentAck != this.sequenceNumber){
+            		if (this.currentAck > this.sequenceNumber){
+            			System.out.println("ERROR: SEQUENCE NUMBER TOO BIG");
+            			System.exit(-1);
+            		}
+            		
+                    mSocket.writeObject(toDownstream);
+
+                    // re-send every 100ms
+                    Thread.sleep(100);
+            	}
+            	this.sequenceNumber++;
+            }catch(InterruptedException e){
+                e.printStackTrace();
+                Thread.currentThread().interrupt();    
+            }
+            
+        }
+    }
+	
+	public void updateAck(int ackNum){
+		this.currentAck = Math.max(ackNum, this.currentAck);
+	}
+
+}

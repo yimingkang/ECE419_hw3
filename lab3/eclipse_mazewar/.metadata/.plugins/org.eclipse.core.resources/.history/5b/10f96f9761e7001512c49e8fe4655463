@@ -1,0 +1,11 @@
+
+public class SafeSocketSenderThread implements Runnable {
+	public SafeSocketSenderThread(){
+		
+	}
+	
+	public void run(){
+		
+	}
+
+}

@@ -1,0 +1,17 @@
+import java.io.IOException;
+
+public class NamingServer {
+    private static final int MAX_CLIENTS = 2;
+    
+    public NamingServer(int port){
+    	
+    }
+    
+    public static void main(String args[]) throws IOException {
+        System.out.println("Starting naming server");
+        
+        int port = Integer.parseInt(args[0]);
+        
+    }
+
+}

@@ -1,0 +1,10 @@
+
+public class TestSafeSocket1 {
+	public TestSafeSocket1(){
+		// Create a SafeSocket
+		SafeSocket sSock = new SafeSocket("t1", 8000, 9000);
+		MPacket token = MPacket();
+		
+	}
+
+}

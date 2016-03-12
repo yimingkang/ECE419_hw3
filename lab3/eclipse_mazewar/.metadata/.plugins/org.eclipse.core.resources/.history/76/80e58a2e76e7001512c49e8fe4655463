@@ -1,0 +1,10 @@
+
+public class SafeSocketSenderAckThread implements Runnable{
+	public SafeSocketSenderThread senderThread;
+	public MSocket mSocket;
+	
+	public SafeSocketSenderAckThread(MSocket socket, SafeSocketSenderThread sender){
+		
+	}
+
+}

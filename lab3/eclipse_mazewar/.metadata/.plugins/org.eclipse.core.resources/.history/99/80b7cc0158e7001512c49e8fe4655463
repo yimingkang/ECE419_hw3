@@ -1,0 +1,17 @@
+import java.util.concurrent.BlockingQueue;
+import java.util.PriorityQueue;
+
+public class SafeSocket {
+	public final String name;
+	public MSocket senderSocket, receiverSocket;
+	public BlockingQueue sendQueue, receiveQueue;
+	public int inputPort, outputPort;
+	public int nextExpectedPacketNumber=0, nextSendPacketNumber=0;
+	public PriorityQueue 
+	
+	
+	public SafeSocket(String name){
+		
+	}
+
+}

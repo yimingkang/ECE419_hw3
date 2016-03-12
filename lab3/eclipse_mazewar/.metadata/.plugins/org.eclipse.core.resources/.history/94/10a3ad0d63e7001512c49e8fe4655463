@@ -1,0 +1,36 @@
+import java.util.concurrent.BlockingQueue;
+
+public class SafeSocketSenderThread implements Runnable {
+	public int currentAck=0;
+	public MSocket mSocket;
+	public BlockingQueue<MPacket> packetQueue;
+	
+	public SafeSocketSenderThread(MSocket socket, BlockingQueue<MPacket> packets){
+		this.mSocket = socket;
+		this.packetQueue = packets;
+	}
+	
+	
+    public void run() {
+        MPacket toServer = null;
+        if(Debug.debug) System.out.println("Starting ClientSenderThread");
+        while(true){
+            try{                
+                //Take packet from queue
+                toServer = (MPacket)eventQueue.take();
+                toServer.sequenceNumber = this.sequenceNumber++;
+                if(Debug.debug) System.out.println("Sending " + toServer);
+                mSocket.writeObject(toServer);    
+            }catch(InterruptedException e){
+                e.printStackTrace();
+                Thread.currentThread().interrupt();    
+            }
+            
+        }
+    }
+	
+	public void updateAck(int ackNum){
+		this.currentAck = Math.max(ackNum, this.currentAck);
+	}
+
+}

@@ -1,0 +1,12 @@
+
+public class SafeSocket {
+	public final String name;
+	public MSocket senderSocket, receiverSocket;
+	public 
+	
+	
+	public SafeSocket(String name){
+		
+	}
+
+}

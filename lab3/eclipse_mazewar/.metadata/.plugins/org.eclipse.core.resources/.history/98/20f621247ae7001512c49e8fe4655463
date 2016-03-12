@@ -1,0 +1,14 @@
+
+public class SafeSocket {
+	public String myName;
+	public int inPort;
+	public int outPort;
+	
+	BlockingQueue
+	
+	public SafeSocket(String name, int inboundPortNumber, int outboundPortNumber){
+		this.inPort = inboundPortNumber;
+		this.outPort = outboundPortNumber;
+		this.myName = name;
+	}
+}

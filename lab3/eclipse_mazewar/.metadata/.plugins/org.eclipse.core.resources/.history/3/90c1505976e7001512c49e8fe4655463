@@ -1,0 +1,40 @@
+import java.io.IOException;
+
+public class SafeSocketSenderAckThread implements Runnable{
+	public SafeSocketSenderThread senderThread;
+	public MSocket mSocket;
+	
+	public SafeSocketSenderAckThread(MSocket socket, SafeSocketSenderThread sender){
+		this.mSocket = socket;
+		this.senderThread = sender;
+	}
+	
+	public void run(){
+        MPacket received = null;
+        
+        while(true){
+            try{
+                received = (MPacket) mSocket.readObject();
+                
+                // ACK on all read objects
+                this.sendAck(received.sequenceNumber);
+                
+                // correct the OO packets with a PQ
+                this.packetPriorityQueue.offer(received);
+                while (this.packetPriorityQueue.size() != 0 && this.packetPriorityQueue.peek().sequenceNumber == this.nextExpected){
+                    this.nextExpected++;
+                    received = this.packetPriorityQueue.poll();
+                    System.out.println("Processing packet #" + received.sequenceNumber);
+                    
+                    // next packet goes straight to the output queue, packets here are ORDERED!!
+                    this.processToken(received);
+                }
+            }catch(IOException e){
+                e.printStackTrace();
+            }catch(ClassNotFoundException e){
+                e.printStackTrace();
+            }            
+        }
+	}
+
+}

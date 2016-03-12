@@ -1,0 +1,28 @@
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+
+public class SafeSocket {
+	public String myName;
+	public int inPort;
+	public int outPort;
+	
+	private BlockingQueue<MPacket> writeBuffer;
+	private BlockingQueue<MPacket> outputBuffer;
+	
+	public SafeSocket(String name, int inboundPortNumber, int outboundPortNumber){
+		this.inPort = inboundPortNumber;
+		this.outPort = outboundPortNumber;
+		this.myName = name;
+		this.writeBuffer = new LinkedBlockingQueue<MPacket>();
+		this.readBuffer = new LinkedBlockingQueue<MPacket>();
+	}
+	
+	
+	public void writeObject(MPacket packet){
+		this.writeBuffer.add(packet);
+	}
+	
+	public MPacket readObject(){
+		this.outputBuffer.take();
+	}
+}

@@ -1,0 +1,34 @@
+import java.io.IOException;
+
+public class TestSafeSocket1 {
+	public TestSafeSocket1(){
+		// Create a SafeSocket
+	}
+	
+	public static void test(String name, int inSock, int outSock, int hasToken) throws IOException, InterruptedException{
+		SafeSocket sSock = new SafeSocket(name, inSock, outSock);
+		MPacket helloMessage = new MPacket(name, 100, 100);	
+
+		if (hasToken == 1){
+			// Send a token
+			System.out.println("This thread has token, writing to outbound queue");
+			sSock.writeObject(token);
+			
+			token = 
+		}else{
+			System.out.println("This thread has no token, waiting");
+		}
+		
+		while(true){
+			Thread.sleep(1000);
+		}
+	}
+
+	public static void main (String[] args) throws IOException, NumberFormatException, InterruptedException {
+		// test functions
+		// process 1	
+				
+		System.out.println("Starting " + args[0] + " " + args[1] + " " + args[2] + " " + args[3]);
+		TestSafeSocket1.test(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]));
+	}
+}

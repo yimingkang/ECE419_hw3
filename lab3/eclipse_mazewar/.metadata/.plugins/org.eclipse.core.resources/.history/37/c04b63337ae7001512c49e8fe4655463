@@ -1,0 +1,16 @@
+import java.util.concurrent.BlockingQueue;
+
+public class SafeSocket {
+	public String myName;
+	public int inPort;
+	public int outPort;
+	
+	private BlockingQueue<MPacket> writeBuffer;
+	private BlockingQueue<MPacket> outputBuffer
+	
+	public SafeSocket(String name, int inboundPortNumber, int outboundPortNumber){
+		this.inPort = inboundPortNumber;
+		this.outPort = outboundPortNumber;
+		this.myName = name;
+	}
+}

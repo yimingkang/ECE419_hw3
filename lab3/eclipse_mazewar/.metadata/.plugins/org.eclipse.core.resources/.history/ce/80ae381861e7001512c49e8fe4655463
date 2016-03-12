@@ -1,0 +1,15 @@
+
+public class SafeSocketUpstreamThread implements Runnable{
+	
+	public SafeSocketUpstreamThread(){
+		/* sender needs to know the dest.
+		 * 
+		 * 
+		 */
+		
+	}
+	
+    public void run() {
+    	
+    }
+}

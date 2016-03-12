@@ -1,0 +1,129 @@
+import java.io.IOException;
+import java.util.concurrent.BlockingQueue;
+
+public class SafeSocketSenderThread implements Runnable {
+	public int sequenceNumber=1;
+	public static int currentAck=0;
+	public MSocket mSocket=null;
+	public BlockingQueue<MPacket> packetQueue;
+	public static boolean hasToken = false;
+	public static MPacket currentToken;
+	public String host;
+	public int outPort;
+	
+	public SafeSocketSenderThread(String host, int outPort, BlockingQueue<MPacket> packets, boolean tokenHolder){
+		/*** Place all outbound MPackets in the blocking queue ***/
+
+		this.host = host;
+		this.outPort = outPort;
+		this.packetQueue = packets;
+		if (tokenHolder){
+	}
+	
+	public static void offerToken(MPacket token){
+		if (SafeSocketSenderThread.currentToken != null || SafeSocketSenderThread.hasToken){
+			System.out.println("ERROR: offering token when there's a token already!");
+			System.exit(-1);
+		}
+		// gets the TOKEN
+		SafeSocketSenderThread.currentToken = token;
+		SafeSocketSenderThread.hasToken = true;
+	}
+	
+	public MPacket prepareToken(){
+		// wait till we get a token
+		while (!SafeSocketSenderThread.hasToken){
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+        MPacket toDownstream = SafeSocketSenderThread.currentToken;
+        
+        // transfer all MPackets onto token
+        int nMessages = this.packetQueue.size();
+    	for (int i = 0; i < nMessages; i++){
+    		MPacket msg = null;
+			try {
+				msg = this.packetQueue.take();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+    		toDownstream.addPacket(msg);
+    	}
+
+        // set sequence number
+        toDownstream.sequenceNumber = this.sequenceNumber;
+        
+        // TODO: FIXME:
+        
+        /* 
+         * Network delay MIGHT cause this token to loop around the ring before
+         * an ACK is received. Therefore we need to make sure to clear 
+         * this before any attempt to writeObject() is made, otherwise 
+         * offerToken() will fail
+         * 
+         * This is very important!! 
+         */
+        SafeSocketSenderThread.currentToken = null;
+    	SafeSocketSenderThread.hasToken = false;
+        
+        // off you go!
+        return toDownstream;
+	}
+	
+    public void run() {
+		System.out.println("SafeSocketSenderThread starting...");
+		// create socket and start sender thread
+		while (this.mSocket == null){
+			// sleep 0.5s until a connection can be made
+			try {
+				this.mSocket = new MSocket(this.host, this.outPort);
+			} catch (IOException e) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		}
+		
+		// Start a thread to handle ACKs
+		new Thread(new SafeSocketSenderAckThread(this.mSocket)).start();
+		
+        while(true){
+            try{                
+                // Wait until we have a token to send
+            	System.out.println("Preparing to send token...");
+        		MPacket toDownstream = this.prepareToken();
+        		
+                // keep sending unless ACKed
+            	while (SafeSocketSenderThread.currentAck != this.sequenceNumber){
+            		if (SafeSocketSenderThread.currentAck > this.sequenceNumber){
+            			System.out.println("ERROR: SEQUENCE NUMBER TOO BIG");
+            			System.exit(-1);
+            		}
+                	System.out.println("Sending token!");
+            		
+                    mSocket.writeObject(toDownstream);
+
+                    // re-send every 100ms
+                    Thread.sleep(100);
+            	}
+            	this.sequenceNumber++;
+            }catch(InterruptedException e){
+                e.printStackTrace();
+                Thread.currentThread().interrupt();    
+            }
+            
+        }
+    }
+	
+	public static void updateAck(int ackNum){
+		SafeSocketSenderThread.currentAck = Math.max(ackNum, SafeSocketSenderThread.currentAck);
+	}
+
+}

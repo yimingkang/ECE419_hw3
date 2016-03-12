@@ -1,0 +1,15 @@
+
+public class SafeSocket {
+	public final String name;
+	public MSocket senderSocket, receiverSocket;
+	public blockingQueue sendQueue, receiveQueue;
+	public int inputPort, outputPort;
+	public int nextExpectedPacketNumber=nextSendPacketNumber=0;
+	public
+	
+	
+	public SafeSocket(String name){
+		
+	}
+
+}
