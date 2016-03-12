@@ -5,15 +5,15 @@ public class TestSafeSocket1 {
 		// Create a SafeSocket
 	}
 	
-	public static void test(String name, int inSock, int outSock, int hasToken) throws IOException, InterruptedException{
+	public static void test(String name, int inSock, int outSock, int hasToken) throws IOException, InterruptedException, ClassNotFoundException{
 		SafeSocket sSock = null;
 		if (hasToken == 1){
 			// Send a token
 			System.out.println("This thread has token, writing to outbound queue");
-			sSock = new SafeSocket(name, inSock, outSock, true);
+			sSock = new SafeSocket(name, 7777, true);
 		}else{
 			System.out.println("This thread has no token, waiting");
-			sSock = new SafeSocket(name, inSock, outSock, false);
+			sSock = new SafeSocket(name, 7777, false);
 		}
 				
 		int seq = 0;
@@ -26,7 +26,7 @@ public class TestSafeSocket1 {
 		}
 	}
 
-	public static void main (String[] args) throws IOException, NumberFormatException, InterruptedException {
+	public static void main (String[] args) throws IOException, NumberFormatException, InterruptedException, ClassNotFoundException {
 		// test functions
 		// process 1	
 				
