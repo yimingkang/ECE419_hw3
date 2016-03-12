@@ -4,10 +4,10 @@ import java.util.Hashtable;
 
 public class ClientListenerThread implements Runnable {
 
-    private MSocket mSocket  =  null;
+    private SafeSocket mSocket  =  null;
     private Hashtable<String, Client> clientTable = null;
 
-    public ClientListenerThread( MSocket mSocket,
+    public ClientListenerThread( SafeSocket mSocket,
                                 Hashtable<String, Client> clientTable){
         this.mSocket = mSocket;
         this.clientTable = clientTable;
@@ -20,7 +20,8 @@ public class ClientListenerThread implements Runnable {
         if(Debug.debug) System.out.println("Starting ClientListenerThread");
         while(true){
             try{
-                received = (MPacket) mSocket.readObject();
+				received = (MPacket) mSocket.readObject();
+
                 System.out.println("Received " + received);
                 client = clientTable.get(received.name);
                 if(received.event == MPacket.UP){
@@ -36,9 +37,7 @@ public class ClientListenerThread implements Runnable {
                 }else{
                     throw new UnsupportedOperationException();
                 }    
-            }catch(IOException e){
-                e.printStackTrace();
-            }catch(ClassNotFoundException e){
+            }catch(InterruptedException e){
                 e.printStackTrace();
             }            
         }

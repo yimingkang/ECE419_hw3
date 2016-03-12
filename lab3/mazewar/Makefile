@@ -14,7 +14,7 @@ CAT=cat
 
 # The only file we are interested in is Mazewar.class,
 # the rest are handled by the dependencies.
-FILES=Mazewar.class Server.class
+FILES=Mazewar.class NamingServer.class
 
 all: ${FILES}
 

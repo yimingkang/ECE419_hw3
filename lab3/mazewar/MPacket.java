@@ -1,4 +1,6 @@
 import java.io.Serializable;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 public class MPacket implements Serializable {
 
@@ -20,6 +22,13 @@ public class MPacket implements Serializable {
     public static final int RIGHT = 204;
     public static final int FIRE = 205;
     
+    // ACK
+    public static final int ACK = 206;
+    
+    // TOKEN
+    public static final int TOKEN = 207;
+
+    
     //These fields characterize the event  
     public int type;
     public int event; 
@@ -35,7 +44,50 @@ public class MPacket implements Serializable {
     public int mazeHeight;
     public int mazeWidth; 
     public Player[] players;
+    
+    // ack number
+    public int ackNum;
+    
+    // in/out ports
+    public int inPort;
+    public int outPort;
+    public boolean isTokenHolder;
+    
+    // event queue
+    public BlockingQueue<MPacket> eventQueue = null;
+    
+    public MPacket(){
+    	// TOKEN
+    	this.eventQueue = new LinkedBlockingQueue<MPacket>();
+    	this.type = 300;
+    	this.event = MPacket.TOKEN;
+    }
+    
+    public void addPacket(MPacket m){
+    	if (this.eventQueue == null){
+    		System.out.println("ERROR: Uninitialized eventQueue!");
+    		System.exit(-1);
+    	}
+    	this.eventQueue.add(m);
+    }
 
+    
+    public void removeMyMessages(String name){
+    	if (this.eventQueue == null){
+    		System.out.println("ERROR: Uninitialized eventQueue!");
+    		System.exit(-1);
+    	}
+    	while(!this.eventQueue.isEmpty() && this.eventQueue.peek().name.equals(name)){
+    		try {
+				this.eventQueue.take();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    }
+ 
+    
     public MPacket(int type, int event){
         this.type = type;
         this.event = event;
@@ -45,6 +97,13 @@ public class MPacket implements Serializable {
         this.name = name;
         this.type = type;
         this.event = event;
+    }
+    
+    public MPacket (int ack){
+    	// the special ACK constructor
+    	this.ackNum = ack;
+    	this.type = 100;
+    	this.event = MPacket.ACK;
     }
     
     public String toString(){
@@ -57,6 +116,9 @@ public class MPacket implements Serializable {
                 break;
             case 200:
                 typeStr = "ACTION";
+                break;
+            case 300:
+                typeStr = "TOKEN";
                 break;
             default:
                 typeStr = "ERROR";
@@ -83,6 +145,12 @@ public class MPacket implements Serializable {
                 break;
             case 205:
                 eventStr = "FIRE";
+                break;
+            case 206:
+                eventStr = "ACK";
+                break;
+            case 207:
+                eventStr = "TOKEN";
                 break;
             default:
                 eventStr = "ERROR";

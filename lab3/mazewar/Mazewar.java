@@ -70,7 +70,7 @@ public class Mazewar extends JFrame {
          * The Mazewar instance itself. 
          */
         private Mazewar mazewar = null;
-        private MSocket mSocket = null;
+        private SafeSocket mSocket = null;
         private ObjectOutputStream out = null;
         private ObjectInputStream in = null;
 
@@ -166,18 +166,17 @@ public class Mazewar extends JFrame {
                   Mazewar.quit();
                 }
                 
-                mSocket = new MSocket(serverHost, serverPort);
                 //Send hello packet to server
                 MPacket hello = new MPacket(name, MPacket.HELLO, MPacket.HELLO_INIT);
                 hello.mazeWidth = mazeWidth;
                 hello.mazeHeight = mazeHeight;
                 
-                if(Debug.debug) System.out.println("Sending hello");
-                mSocket.writeObject(hello);
-                if(Debug.debug) System.out.println("hello sent");
+                mSocket = new SafeSocket(name, serverHost, serverPort, hello);
+
                 //Receive response from server
-                MPacket resp = (MPacket)mSocket.readObject();
-                if(Debug.debug) System.out.println("Received response from server");
+                MPacket resp = mSocket.getHelloResponse();
+                
+                mSocket.start();
 
                 //Initialize queue of events
                 eventQueue = new LinkedBlockingQueue<MPacket>();
