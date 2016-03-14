@@ -6,9 +6,13 @@ Yiming Kang (998676730): yiming.kang@mail.utoronto.ca
 
 Introduction
 ============
-This implements a client-server Mazewar game. 
-Additionally, the MSocket class can be used to 
-induce errors, such as adding delays and reordering packets.
+This assignment implements a distributed peer-to-peer system of the game.
+In particular, it mimics the environment of high network bandwidth, very
+low parallelism in network, very low network latency, low-end nodes. It passes
+a Token Ring around each node and every client attaches its own event to the
+token and pass it around. The missile projectile update inconcistency is solved
+by adding a new UPDATE_PROJECTILE event and each client is responsible to update
+its own missile.
 
 Architecture
 ============
