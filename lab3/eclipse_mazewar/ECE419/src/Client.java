@@ -136,6 +136,15 @@ public abstract class Client {
                         return false;
                 }
         }
+
+
+        protected boolean canMoveforward() {
+                assert(maze != null);
+                
+                return maze.clientCanMoveForward(this);
+        }
+
+        
         
         /**
          * Move the client backward.
@@ -180,6 +189,21 @@ public abstract class Client {
                         return false;
                 }
         }
+
+        /**
+         * Update a projectile.
+         * @return <code>true</code> if a projectile was successfully launched, otherwise <code>false</code>.
+         */
+        protected boolean updateProjectile() {
+                assert(maze != null);
+
+                if(maze.updateProjectile(this)) {
+                        notifyUpdateProjectile();
+                        return true;
+                } else {
+                        return false;
+                }
+        }
         
         
         /** 
@@ -215,6 +239,10 @@ public abstract class Client {
          */
         private void notifyFire() {
                 notifyListeners(ClientEvent.fire);       
+        }
+
+        private void notifyUpdateProjectile() {
+                 notifyListeners(ClientEvent.updateProjectile);       
         }
         
         /**

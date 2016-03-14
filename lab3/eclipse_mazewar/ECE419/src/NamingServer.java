@@ -7,15 +7,18 @@ import java.net.Socket;
 import java.util.Random;
 
 public class NamingServer {
-    private static final int MAX_CLIENTS = 4;
+    private static final int MAX_CLIENTS = 3;
     private static Socket[] mSocketList = null; //A list of MSockets
     private static MPacket[] helloPackets = null;
+    private static String[] playerNames = null;
 
     public static void main(String args[]) throws IOException, ClassNotFoundException{
         int port = Integer.parseInt(args[0]);
         System.out.println("Starting naming server on port " + port);
         mSocketList = new Socket[MAX_CLIENTS];
         helloPackets = new MPacket[MAX_CLIENTS];
+        playerNames = new String[MAX_CLIENTS];
+
         
         int clientCount = 0;
         ServerSocket sSocket = new ServerSocket(port);
@@ -31,6 +34,7 @@ public class NamingServer {
         	// first read the hello packet
         	MPacket helloPacket = (MPacket) reader.readObject();
         	helloPackets[clientCount] = helloPacket;
+        	playerNames[clientCount] = helloPacket.name;
         }
         handleHello();
         sSocket.close();
@@ -73,20 +77,25 @@ public class NamingServer {
             
             hello.event = MPacket.HELLO_RESP;
             hello.players = players;
+            hello.Ports = new int[playerCount];
+            
+            // initialize hello packet
+            for(int i=0; i<playerCount; i++){
+            	hello.Ports[i] = nextAssignedPort;
+            	nextAssignedPort++;
+            }
 
             for(int i=0; i<playerCount; i++){
             	Socket client = mSocketList[i];
-            	hello.inPort = nextAssignedPort;
-            	nextAssignedPort++;
+            	hello.inPortIndex = i;
+            	hello.outPortIndex = (i + 1) % playerCount;
             	
             	System.out.println("Sending to player " + i);
             	
 	        	if(i == playerCount - 1){
 	        		// last one wraps around, last one is the token holder
-	        		hello.outPort = socketBasePort;
 	        		hello.isTokenHolder = true;
 	        	}else{
-	        		hello.outPort = nextAssignedPort;
 	        		hello.isTokenHolder = false;
 	        	}
 	        	

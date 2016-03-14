@@ -70,6 +70,8 @@ public abstract class Maze {
      * @param client {@link Client} that is firing.
      * @return <code>false</code> on failure, <code>true</code> on success. */
     public abstract boolean clientFire(Client client);
+
+    public abstract boolean updateProjectile(Client client);
     
     /** 
      * Remove the specified {@link Client} from the {@link Maze} 
@@ -97,6 +99,7 @@ public abstract class Maze {
      * @return <code>true</code> if successful, <code>false</code> if failure. 
      */
     public abstract boolean moveClientForward(Client client);
+    public abstract boolean clientCanMoveForward(Client client);
     
     /** Attempt to move a {@link Client} in the {@link Maze} backward.
      * @param client {@link Client} to move.

@@ -28,6 +28,9 @@ public class MPacket implements Serializable {
     // TOKEN
     public static final int TOKEN = 207;
 
+    // fix for projectile
+    public static final int UPDATE_PROJECTILE = 208;
+
     
     //These fields characterize the event  
     public int type;
@@ -49,8 +52,11 @@ public class MPacket implements Serializable {
     public int ackNum;
     
     // in/out ports
-    public int inPort;
-    public int outPort;
+    public int inPortIndex;
+    public int outPortIndex;
+    
+    public int[] Ports;
+    
     public boolean isTokenHolder;
     
     // event queue
@@ -151,6 +157,9 @@ public class MPacket implements Serializable {
                 break;
             case 207:
                 eventStr = "TOKEN";
+                break;
+            case 208:
+                eventStr = "UPDATE_PROJECTILE";
                 break;
             default:
                 eventStr = "ERROR";

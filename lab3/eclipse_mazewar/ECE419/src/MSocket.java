@@ -7,8 +7,11 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ExecutorService;
 import java.util.ArrayList;
 import java.util.Random;
@@ -88,6 +91,8 @@ public class MSocket{
 
     //Time of creation of this MSocket
     private Date creationTime;
+    
+    public BlockingQueue<Boolean> outerErrorQueue = null;
 
     /*************Helper Classes*************/
 
@@ -115,6 +120,10 @@ public class MSocket{
      *receives packets and adds it to the ingressQueue
      */
      class Receiver implements Runnable{
+    	public BlockingQueue<Boolean> errorQueue;
+    	public Receiver(BlockingQueue<Boolean> errorQueue){
+    		this.errorQueue = errorQueue;
+    	}
 
         public void run(){
             try{
@@ -146,10 +155,17 @@ public class MSocket{
                 System.out.println(e.getMessage());
                 e.printStackTrace();
             }catch(EOFException e){
-                e.printStackTrace();
-                close();
-                System.out.println("Exiting");
-                System.exit(0);
+                //e.printStackTrace();
+                //close();
+                try {
+					System.out.println(Thread.currentThread().getName()+"MSocket: Exception handler - 1");
+					this.errorQueue.put(new Boolean(true));
+				} catch (InterruptedException e1) {
+					System.out.println(Thread.currentThread().getName()+"MSocket: Exception handler - 2");
+					
+				}
+                System.out.println("Exiting!!!");
+                //System.exit(0);
             }catch(IOException e){
                 e.printStackTrace();
             }catch(ClassNotFoundException e){
@@ -234,8 +250,9 @@ public class MSocket{
     /*
      *This creates a regular socket
      */
-    public MSocket(String host, int port) throws IOException{
+    public MSocket(String host, int port, BlockingQueue<Boolean> errorQueue) throws IOException{
         socket = new Socket(host, port);
+        this.outerErrorQueue = errorQueue;
         //NOTE: outputStream should be initialized before
         //inputStream, otherwise it will block
         out = new ObjectOutputStream(socket.getOutputStream());
@@ -247,7 +264,7 @@ public class MSocket{
 
         //Start the receiver thread
         //NOTE: This will keep updating the ingress queue
-        (new Thread(new Receiver())).start();
+        (new Thread(new Receiver(errorQueue))).start();
 
         executor = Executors.newFixedThreadPool(10);
 
@@ -262,8 +279,10 @@ public class MSocket{
 
     //Similar to above, except takes an initialized socket
     //NOTE: This constructor is for internal use only
-    public MSocket(Socket soc) throws IOException{
+    public MSocket(Socket soc, BlockingQueue<Boolean> bq) throws IOException{
+    	System.out.print("MServerSocket constructor");
         socket = soc;
+        this.outerErrorQueue = bq;
 
         out = new ObjectOutputStream(socket.getOutputStream());
         in = new ObjectInputStream(socket.getInputStream());
@@ -272,7 +291,7 @@ public class MSocket{
         ingressQueue = new LinkedBlockingQueue<Object>();
         random = new Random(/*seed*/);
 
-        (new Thread(new Receiver())).start();
+        (new Thread(new Receiver(bq))).start();
 
         executor = Executors.newFixedThreadPool(10);
 
@@ -308,7 +327,8 @@ public class MSocket{
         return randDouble < DROP_RATE;
     }
 
-    /*************Public Methods*************/
+    /*************Public Methods
+     * @throws Exception *************/
 
     /*
      Read incoming packet and induce network delays and packet
@@ -316,52 +336,62 @@ public class MSocket{
      NOTE: This method relies on the
      ingress queue being automatically updated by another thread
     */
-    public synchronized Object readObject() throws IOException, ClassNotFoundException{
+    public synchronized Object readObject() throws Exception{
 
-        //First check if we are in the grace period
-        if((new Date()).getTime() - creationTime.getTime() <
-                ERROR_FREE_TRANSMISSION_PERIOD){
-            return readObjectNoError();
-        }
+    	while (true){
+    		try{
+		        //First check if we are in the grace period
+		        if((new Date()).getTime() - creationTime.getTime() <
+		                ERROR_FREE_TRANSMISSION_PERIOD){
+		            return readObjectNoError();
+		        }
+		
+		        //The packet to be returned
+		        Object incoming = null;
+	
 
-        //The packet to be returned
-        Object incoming = null;
-
-        try{
-            //Add a random delay
-            int delay = getDelay();
-            Thread.sleep(delay);
-
-            //Return the head of the queue- no reordering
-            if(UNORDER_FACTOR == 0.0 || ingressQueue.size() < 2){
-                incoming = ingressQueue.take();
-            //Return the second object in the queue- slight reordering
-            }else if(UNORDER_FACTOR > 0.0 && UNORDER_FACTOR < 1.0){
-                Object first = ingressQueue.take();
-                //Take the second element
-                incoming = ingressQueue.take();
-                //put the first back in the queue
-                ingressQueue.put(first);
-            }else{//UNORDER_FACTOR == 1, high degree of reordering
-                ArrayList events = new ArrayList();
-                ingressQueue.drainTo(events);
-                //get event at random index
-                int idx = getRandomIndex(events.size());
-                incoming = events.remove(idx);
-                //put the rest back in the ingress queue
-                while(events.size() > 0)
-                    //Remove the head from events and insert it into the ingress queue
-                    ingressQueue.put(events.remove(0));
-            }
-        }catch(InterruptedException e){
-            e.printStackTrace();
-        }
-        return incoming;
+	            //Add a random delay
+	            int delay = getDelay();
+	            Thread.sleep(delay);
+	
+	            //Return the head of the queue- no reordering
+	            if(UNORDER_FACTOR == 0.0 || ingressQueue.size() < 2){
+	                incoming = ingressQueue.poll(50, TimeUnit.MILLISECONDS);
+	            //Return the second object in the queue- slight reordering
+	            }else if(UNORDER_FACTOR > 0.0 && UNORDER_FACTOR < 1.0){
+	                Object first =  ingressQueue.poll(50, TimeUnit.MILLISECONDS);
+	                //Take the second element
+	                incoming = ingressQueue.poll(50, TimeUnit.MILLISECONDS);
+	                //put the first back in the queue
+	                ingressQueue.put(first);
+	            }else{//UNORDER_FACTOR == 1, high degree of reordering
+	                ArrayList events = new ArrayList();
+	                ingressQueue.drainTo(events);
+	                //get event at random index
+	                int idx = getRandomIndex(events.size());
+	                incoming = events.remove(idx);
+	                //put the rest back in the ingress queue
+	                while(events.size() > 0){
+	                	System.out.println("wtf?!");
+	                    //Remove the head from events and insert it into the ingress queue
+	                    ingressQueue.put(events.remove(0));
+	                }
+	            }
+		        return incoming;
+    		}catch(Exception e){
+    			if(this.outerErrorQueue.size() != 0){
+    				System.out.println("ERROR!!!!!!!!!");
+    				throw new Exception();
+    			}else{
+    				System.out.println(Thread.currentThread().getName()+"MSocket: delay more than 5000 seconds");
+    			}
+    		}
+    	}
     }
 
 
     //Writes the object, while inducing network delay, reordering, and packet drops
-    public void writeObject(Object o) {
+    public void writeObject(Object o) throws InterruptedException, IOException, ExecutionException {
 
         //Check if we are within the grace period
         if((new Date()).getTime() - creationTime.getTime() <
@@ -370,39 +400,29 @@ public class MSocket{
             return;
         }
 
-        try{
-            //Place packet in the queue, and later change the order of packets sent
-            egressQueue.put(o);
-        }catch(InterruptedException e){
-            e.printStackTrace();
-        }
 
-        executor.submit(new NetworkErrorSender());
+        egressQueue.put(o);
+
+        Future future = executor.submit(new NetworkErrorSender());
+        future.get();
+
     }
 
 
     //This method is for reference and testing
     //it reads objects without inducing network errors
     //NOTE: THIS SHOULD NOT BE USED IN YOUR SOLUTION
-    public synchronized Object readObjectNoError() throws IOException{
+    public synchronized Object readObjectNoError() throws IOException, InterruptedException{
         Object incoming = null;
-        try{
-            incoming = ingressQueue.take();
-        }catch(InterruptedException e){
-            e.printStackTrace();
-        }
+        incoming = ingressQueue.poll(5000, TimeUnit.MILLISECONDS);
         return incoming;
     }
 
     //This method is for reference and testing
     //it writes objects without inducing network errors
     //NOTE: THIS SHOULD NOT BE USED IN YOUR SOLUTION
-    public void writeObjectNoError(Object o){
-        try{
-            out.writeObject(o);
-        }catch(IOException e){
-            e.printStackTrace();
-        }
+    public void writeObjectNoError(Object o) throws IOException{
+    	out.writeObject(o);
     }
 
     //Closes network objects, i.e. sockets, InputObjectStreams,
@@ -413,6 +433,7 @@ public class MSocket{
             out.close();
             socket.close();
          }catch(IOException e){
+        	 System.out.println(Thread.currentThread().getName()+"MSocket: Fail to close");
          }
     }
 

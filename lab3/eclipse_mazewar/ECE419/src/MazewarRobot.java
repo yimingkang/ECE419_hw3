@@ -42,7 +42,7 @@ import java.util.concurrent.BlockingQueue;
  * @version $Id: Mazewar.java 371 2004-02-10 21:55:32Z geoffw $
  */
 
-public class Mazewar extends JFrame {
+public class MazewarRobot extends JFrame {
 
         /**
          * The default width of the {@link Maze}.
@@ -69,7 +69,7 @@ public class Mazewar extends JFrame {
         /**
          * The Mazewar instance itself. 
          */
-        private Mazewar mazewar = null;
+        private MazewarRobot mazewar = null;
         private SafeSocket mSocket = null;
         private ObjectOutputStream out = null;
         private ObjectInputStream in = null;
@@ -77,7 +77,7 @@ public class Mazewar extends JFrame {
         /**
          * The {@link GUIClient} for the game.
          */
-        private GUIClient guiClient = null;
+        private RobotClient guiClient = null;
         
         
         /**
@@ -145,10 +145,10 @@ public class Mazewar extends JFrame {
         /** 
          * The place where all the pieces are put together. 
          */
-        public Mazewar(String serverHost, int serverPort) throws IOException,
+        public MazewarRobot(String serverHost, int serverPort) throws IOException,
                                                 ClassNotFoundException {
-                super("ECE419 Mazewar");
-                consolePrintLn("ECE419 Mazewar started!");
+                super("ECE419 MazewarRobot");
+                consolePrintLn("ECE419 MazewarRobot started!");
                 
                 // Create the maze
                 //maze = new MazeImpl(new Point(mazeWidth, mazeHeight), mazeSeed);
@@ -157,9 +157,9 @@ public class Mazewar extends JFrame {
                 // Throw up a dialog to get the GUIClient name.
                 String name = JOptionPane.showInputDialog("Enter your name");
                 if((name == null) || (name.length() == 0)) {
-                  Mazewar.quit();
+                  MazewarRobot.quit();
                 }
-                guiClient = new GUIClient(name, eventQueue);
+                guiClient = new RobotClient(name, eventQueue);
                 maze = new MazeImpl(new Point(mazeWidth, mazeHeight), mazeSeed, eventQueue, guiClient);
                 assert(maze != null);
                 
@@ -195,7 +195,7 @@ public class Mazewar extends JFrame {
                         	if(Debug.debug)System.out.println("Adding guiClient: " + player);
                                 //guiClient = new GUIClient(name, eventQueue);
                                 maze.addClientAt(guiClient, player.point, player.direction);
-                                this.addKeyListener(guiClient);
+                                // this.addKeyListener(guiClient);
                                 clientTable.put(player.name, guiClient);
                         }else{
                         	if(Debug.debug)System.out.println("Adding remoteClient: " + player);
@@ -300,7 +300,7 @@ public class Mazewar extends JFrame {
              String host = args[0];
              int port = Integer.parseInt(args[1]);
              /* Create the GUI */
-             Mazewar mazewar = new Mazewar(host, port);
+             MazewarRobot mazewar = new MazewarRobot(host, port);
              mazewar.startThreads();
         }
 }

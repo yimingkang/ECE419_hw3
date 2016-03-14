@@ -1,4 +1,5 @@
 import java.net.Socket;
+import java.util.concurrent.BlockingQueue;
 import java.net.ServerSocket;
 import java.io.IOException;
 
@@ -9,17 +10,19 @@ public class MServerSocket{
     */
  
     private ServerSocket serverSocket = null;
+    public BlockingQueue<Boolean> bq = null;
     
     /*
      *This creates a server socket
      */    
-    public MServerSocket(int port) throws IOException{
+    public MServerSocket(int port, BlockingQueue<Boolean> bq) throws IOException{
         serverSocket = new ServerSocket(port);
+        this.bq = bq;
     }
     
     public MSocket accept() throws IOException{
         Socket socket = serverSocket.accept(); 
-        MSocket mSocket = new MSocket(socket);
+        MSocket mSocket = new MSocket(socket, this.bq);
         return mSocket;
     }
 

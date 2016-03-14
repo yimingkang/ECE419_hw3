@@ -9,8 +9,10 @@ public class SafeSocket {
 	public String myName;
 	public String serverHost;
 	public MPacket helloPacket;
-	public int inPort;
-	public int outPort;
+	public int inPortIndex;
+	public int outPortIndex;
+	public int [] Ports;
+	public Player[] players;
 	public boolean tokenHolder;
 	
 	private BlockingQueue<MPacket> writeBuffer;
@@ -36,22 +38,24 @@ public class SafeSocket {
 		this.helloPacket = (MPacket) reader.readObject();
 		
 		// get the info we need off MPacket
-		this.inPort = this.helloPacket.inPort;
-		this.outPort = this.helloPacket.outPort;
+		this.Ports = this.helloPacket.Ports;
+		this.outPortIndex = this.helloPacket.outPortIndex;
+		this.inPortIndex = this.helloPacket.inPortIndex;
+		this.players = this.helloPacket.players;
 		this.tokenHolder = this.helloPacket.isTokenHolder;
 		
-		System.out.format("Got naming server response with inPort=%d, outPort=%d\n", this.inPort, this.outPort);
+		System.out.format("Got naming server response with inPort=%d, outPort=%d\n", this.inPortIndex, this.outPortIndex);
 	    namingServer.close();	    
 	}
 	
 	public void start(){
-		System.out.println("Starting SenderThread " + this.myName);
+		System.out.println("Starting SenderThread, inPort = " + this.Ports[this.inPortIndex]);
 		
 		// have Sender thread connect to socket himself ==> impl retry!
-		new Thread(new SafeSocketSenderThread("localhost", this.outPort, this.writeBuffer, this.tokenHolder)).start();
+		new Thread(new SafeSocketSenderThread("localhost", this.Ports, this.outPortIndex, this.writeBuffer, this.tokenHolder)).start();
 		
 		System.out.println("Starting ListenerThread " + this.myName);
-		new Thread(new SafeSocketListenerThread(this.myName, inPort, this.readBuffer)).start();
+		new Thread(new SafeSocketListenerThread(this.myName, this.players, this.Ports, inPortIndex, this.readBuffer)).start();
 	}
 	
 	public MPacket getHelloResponse(){

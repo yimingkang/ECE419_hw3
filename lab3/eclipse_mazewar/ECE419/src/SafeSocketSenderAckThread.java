@@ -1,5 +1,3 @@
-import java.io.IOException;
-
 public class SafeSocketSenderAckThread implements Runnable{
 	public MSocket mSocket;
 	
@@ -16,18 +14,18 @@ public class SafeSocketSenderAckThread implements Runnable{
                 //System.out.println("Got ack #" + received.ackNum);
                 
                 if (received.event != MPacket.ACK){
-                	System.out.println("ERROR: Expecting packet type ACK, got " + received.event + " instead");
+                	System.out.println(Thread.currentThread().getName()+"SenderAck: ERROR: Expecting packet type ACK, got " + received.event + " instead");
                 	System.exit(-1);
                 }
                 
                 // Notify sender of ACK
                 SafeSocketSenderThread.updateAck(received.ackNum);
                 
-            }catch(IOException e){
-                e.printStackTrace();
-            }catch(ClassNotFoundException e){
-                e.printStackTrace();
-            }            
+            }catch(Exception e){
+            	System.out.println(Thread.currentThread().getName()+"SenderAck: Not so gracefully exit!");
+            	this.mSocket.close();
+            	return;
+            }         
         }
 	}
 
