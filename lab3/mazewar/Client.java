@@ -136,6 +136,15 @@ public abstract class Client {
                         return false;
                 }
         }
+
+
+        protected boolean canMoveforward() {
+                assert(maze != null);
+                
+                return maze.clientCanMoveForward(this);
+        }
+
+        
         
         /**
          * Move the client backward.

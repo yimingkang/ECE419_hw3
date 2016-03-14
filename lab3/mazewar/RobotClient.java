@@ -20,6 +20,7 @@ USA.
 import java.util.Random;
 import java.util.Vector;
 import java.lang.Runnable;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * A very naive implementation of a computer controlled {@link LocalClient}.  Basically
@@ -46,15 +47,17 @@ public class RobotClient extends LocalClient implements Runnable {
          * running.
          */
         private boolean active = false;
+
+        private BlockingQueue eventQueue = null;
    
         /**
          * Create a computer controlled {@link LocalClient}.
          * @param name The name of this {@link RobotClient}.
          */
-        public RobotClient(String name) {
+        public RobotClient(String name, BlockingQueue eventQueue) {
                 super(name);
                 assert(name != null);
-                // Create our thread
+                this.eventQueue = eventQueue;
                 thread = new Thread(this);
         }
    
@@ -95,23 +98,26 @@ public class RobotClient extends LocalClient implements Runnable {
                 // Put a spiffy message in the console
                 Mazewar.consolePrintLn("Robot client \"" + this.getName() + "\" activated.");
 
-                // Loop while we are active
-                while(active) {
+                try{
+                    // Loop while we are active
+                    while(active) {
                         // Try to move forward
-                        if(!forward()) {
+                        if(!canMoveforward()) {
                                 // If we fail...
                                 if(randomGen.nextInt(3) == 1) {
                                         // turn left!
-                                        turnLeft();
+                                        eventQueue.put(new MPacket(getName(), MPacket.ACTION, MPacket.LEFT));
                                 } else {
                                         // or perhaps turn right!
-                                        turnRight();
+                                        eventQueue.put(new MPacket(getName(), MPacket.ACTION, MPacket.RIGHT));
                                 }
+                        }else{
+                            eventQueue.put(new MPacket(getName(), MPacket.ACTION, MPacket.UP));
                         }
 
                         // Shoot at things once and a while.
                         if(randomGen.nextInt(10) == 1) {
-                                fire();
+                                eventQueue.put(new MPacket(getName(), MPacket.ACTION, MPacket.FIRE));
                         }
                         
                         // Sleep so the humans can possibly compete.
@@ -120,6 +126,10 @@ public class RobotClient extends LocalClient implements Runnable {
                         } catch(Exception e) {
                                 // Shouldn't happen.
                         }
+                    }
+                }catch(InterruptedException ie){
+                        //An exception is caught, do something
+                        Thread.currentThread().interrupt();
                 }
         }
 }

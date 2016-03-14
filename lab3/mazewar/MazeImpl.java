@@ -356,6 +356,16 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 DirectedPoint dp = (DirectedPoint)o;
                 return moveClient(client, dp.getDirection());
         }
+
+        public synchronized boolean clientCanMoveForward(Client client) {
+                assert(client != null);
+                Object o = clientMap.get(client);
+                assert(o instanceof DirectedPoint);
+                DirectedPoint dp = (DirectedPoint)o;
+                return canMoveClient(client, dp.getDirection());
+        }
+
+        
         
         public synchronized boolean moveClientBackward(Client client) {
                 assert(client != null);
@@ -647,6 +657,22 @@ public class MazeImpl extends Maze implements Serializable, ClientListener, Runn
                 update();
                 return true; 
         }
+
+        private synchronized boolean canMoveClient(Client client, Direction d) {
+                assert(client != null);
+                assert(d != null);
+                Point oldPoint = getClientPoint(client);
+                CellImpl oldCell = getCellImpl(oldPoint);
+                
+                /* Check that you can move in the given direction */
+                if(oldCell.isWall(d)) {
+                        /* Move failed */
+                        return false;
+                }
+                return true;
+            }
+
+        
        
         /**
          * The random number generator used by the {@link Maze}.
