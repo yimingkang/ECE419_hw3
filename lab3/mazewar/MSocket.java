@@ -33,7 +33,7 @@ public class MSocket{
     //This should be a value between [0, inf), with
     // 1000 being a good value
     //To disable delays, set to 0.0
-    public final double DELAY_WEIGHT = 100.0;
+    public final double DELAY_WEIGHT = 10.0;
 
     //This roughly corresponds to the likelihood
     //of any delay. This should be a value between [0, inf)
@@ -44,14 +44,14 @@ public class MSocket{
     //The degree of packet reordereding caused by the network
     //value should be between [0, 1]
     //0 means ordered, 1 means high degree of reordering
-    public final double UNORDER_FACTOR = 1.0;
+    public final double UNORDER_FACTOR = 0.2;
 
     //Probability of a drop
     //Should be between [0, 1)
     //0 means no drops
     //for a large number of drops set to >0.5
     //Packets are only droped on send
-    public final double DROP_RATE = 0.2;
+    public final double DROP_RATE = 0.1;
 
     //Number of milli seconds after this MSocket is created
     //that packets are transmitted without network errors
