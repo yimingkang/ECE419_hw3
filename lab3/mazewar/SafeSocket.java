@@ -12,6 +12,7 @@ public class SafeSocket {
 	public int inPort;
 	public int outPort;
 	public boolean tokenHolder;
+	public String neighborIP;
 	
 	private BlockingQueue<MPacket> writeBuffer;
 	private BlockingQueue<MPacket> readBuffer;
@@ -39,6 +40,7 @@ public class SafeSocket {
 		this.inPort = this.helloPacket.inPort;
 		this.outPort = this.helloPacket.outPort;
 		this.tokenHolder = this.helloPacket.isTokenHolder;
+		this.neighborIP = this.helloPacket.neighborIP;
 		
 		System.out.format("Got naming server response with inPort=%d, outPort=%d\n", this.inPort, this.outPort);
 	    namingServer.close();	    
@@ -48,7 +50,7 @@ public class SafeSocket {
 		System.out.println("Starting SenderThread " + this.myName);
 		
 		// have Sender thread connect to socket himself ==> impl retry!
-		new Thread(new SafeSocketSenderThread("localhost", this.outPort, this.writeBuffer, this.tokenHolder)).start();
+		new Thread(new SafeSocketSenderThread(this.neighborIP, this.outPort, this.writeBuffer, this.tokenHolder)).start();
 		
 		System.out.println("Starting ListenerThread " + this.myName);
 		new Thread(new SafeSocketListenerThread(this.myName, inPort, this.readBuffer)).start();

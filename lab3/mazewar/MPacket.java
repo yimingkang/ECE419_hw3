@@ -54,6 +54,7 @@ public class MPacket implements Serializable {
     // in/out ports
     public int inPort;
     public int outPort;
+    public String neighborIP;
     public boolean isTokenHolder;
     
     // event queue

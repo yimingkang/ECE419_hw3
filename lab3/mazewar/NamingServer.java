@@ -45,9 +45,6 @@ public class NamingServer {
         Player[] players = new Player[playerCount];
         MPacket hello = null;
         
-        int socketBasePort = 8000;
-        int nextAssignedPort = 8000;
-        
         try{        
         	System.out.println("Generating player and player positions");
             for(int i=0; i<playerCount; i++){
@@ -70,23 +67,26 @@ public class NamingServer {
                 Player player = new Player(hello.name, point, Player.North);
                 players[i] = player;
             }
-            
+                    
+            int socketBasePort = 8000;
+
             hello.event = MPacket.HELLO_RESP;
             hello.players = players;
 
             for(int i=0; i<playerCount; i++){
             	Socket client = mSocketList[i];
-            	hello.inPort = nextAssignedPort;
-            	nextAssignedPort++;
+                Socket nextNeighbor = mSocketList[(i + 1) % playerCount];
+
+            	hello.inPort = socketBasePort + i;
+                hello.outPort = socketBasePort + (i + 1) % playerCount;
+                hello.neighborIP = nextNeighbor.getRemoteSocketAddress().toString();
             	
             	System.out.println("Sending to player " + i);
             	
 	        	if(i == playerCount - 1){
 	        		// last one wraps around, last one is the token holder
-	        		hello.outPort = socketBasePort;
 	        		hello.isTokenHolder = true;
 	        	}else{
-	        		hello.outPort = nextAssignedPort;
 	        		hello.isTokenHolder = false;
 	        	}
 	        	
