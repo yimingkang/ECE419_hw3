@@ -5,6 +5,9 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Random;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 
 public class NamingServer {
     private static final int MAX_CLIENTS = 4;
@@ -35,7 +38,21 @@ public class NamingServer {
         handleHello();
         sSocket.close();
     }
-    
+
+       public static String getIp() {
+
+           String myIp = "";
+           InetAddress ip;
+
+           try {
+               ip = InetAddress.getLocalHost();
+               myIp = ip.getHostAddress();      // This method returns the IP.
+           } catch (UnknownHostException e) {
+               e.printStackTrace();
+           }
+
+           return myIp;
+       }
     
    public static void handleHello(){
         
@@ -79,9 +96,13 @@ public class NamingServer {
 
             	hello.inPort = socketBasePort + i;
                 hello.outPort = socketBasePort + (i + 1) % playerCount;
-                hello.neighborIP = nextNeighbor.getRemoteSocketAddress().toString();
+                hello.neighborIP = nextNeighbor.getInetAddress().getHostName();
+
+                if (hello.neighborIP.equals("localhost")){
+                    hello.neighborIP = NamingServer.getIp();
+                }
             	
-            	System.out.println("Sending to player " + i);
+            	System.out.println("Sending to player " + i + " at IP " + hello.neighborIP);
             	
 	        	if(i == playerCount - 1){
 	        		// last one wraps around, last one is the token holder
