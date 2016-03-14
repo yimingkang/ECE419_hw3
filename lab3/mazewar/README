@@ -1,9 +1,14 @@
+Team Members:
+Zexuan Wang (998851773): zexuan.wang@mail.utoronto.ca
+Yiming Kang (998676730): yiming.kang@mail.utoronto.ca
+========================================================================
+
+
 Introduction
 ============
 This implements a client-server Mazewar game. 
 Additionally, the MSocket class can be used to 
 induce errors, such as adding delays and reordering packets.
-
 
 Architecture
 ============
