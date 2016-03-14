@@ -34,6 +34,7 @@ import java.net.Socket;
 import java.util.Hashtable;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.Random;
 
 /**
  * The entry point and glue code for the game.  It also contains some helpful
@@ -141,6 +142,17 @@ public class MazewarRobot extends JFrame {
 
                 System.exit(0);
         }
+
+        public static String generateString(String characters, int length)
+        {
+            Random rng = new Random();
+            char[] text = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                text[i] = characters.charAt(rng.nextInt(characters.length()));
+            }
+            return new String(text);
+        }
        
         /** 
          * The place where all the pieces are put together. 
@@ -155,7 +167,8 @@ public class MazewarRobot extends JFrame {
                 eventQueue = new LinkedBlockingQueue<MPacket>();
                 clientTable = new Hashtable<String, Client>();
                 // Throw up a dialog to get the GUIClient name.
-                String name = JOptionPane.showInputDialog("Enter your name");
+                //String name = JOptionPane.showInputDialog("Enter your name");
+                String name = "Robot"+generateString("ABCDEFGHIJKLMNOPQRSTUVWXYZ", 3);
                 if((name == null) || (name.length() == 0)) {
                   MazewarRobot.quit();
                 }
@@ -271,7 +284,7 @@ public class MazewarRobot extends JFrame {
                 pack();
 
                 // Let the magic begin.
-                setVisible(true);
+                setVisible(false);
                 overheadPanel.repaint();
                 this.requestFocusInWindow();
         }

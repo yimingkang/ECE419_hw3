@@ -149,7 +149,7 @@ public class MSocket{
                 e.printStackTrace();
                 close();
                 System.out.println("Exiting");
-                System.exit(0);
+                // System.exit(0);
             }catch(IOException e){
                 e.printStackTrace();
             }catch(ClassNotFoundException e){
