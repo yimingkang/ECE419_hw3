@@ -7,7 +7,7 @@ import java.net.Socket;
 import java.util.Random;
 
 public class NamingServer {
-    private static final int MAX_CLIENTS = 2;
+    private static final int MAX_CLIENTS = 4;
     private static Socket[] mSocketList = null; //A list of MSockets
     private static MPacket[] helloPackets = null;
 

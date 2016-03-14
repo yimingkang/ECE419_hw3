@@ -122,7 +122,7 @@ public class RobotClient extends LocalClient implements Runnable {
                         
                         // Sleep so the humans can possibly compete.
                         try {
-                                thread.sleep(200);
+                                thread.sleep(500);
                         } catch(Exception e) {
                                 // Shouldn't happen.
                         }
